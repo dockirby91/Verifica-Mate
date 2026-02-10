@@ -3,68 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sito Matematica RPG</title>
+    <title>Liceo RPG - Test Analisi</title>
     <style>
-        /* CSS INTERNO - NESSUNA DIPENDENZA ESTERNA */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
+            background-color: #f8fafc;
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            color: #1e293b;
         }
 
         .container {
             background: white;
-            padding: 2rem;
+            padding: 2.5rem;
             border-radius: 20px;
-            box-shadow: 10px 10px 0px #000;
+            box-shadow: 8px 8px 0px #000;
             border: 3px solid #000;
             width: 100%;
-            max-width: 400px;
+            max-width: 550px;
             text-align: center;
         }
 
         h1 {
             text-transform: uppercase;
             font-style: italic;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.2rem;
+            font-size: 1.8rem;
         }
 
         .subtitle {
-            color: #666;
-            font-size: 0.9rem;
+            color: #4f46e5;
+            font-weight: bold;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
             margin-bottom: 2rem;
         }
 
         input {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             margin-bottom: 1rem;
-            border: 2px solid #000;
-            border-radius: 8px;
+            border: 3px solid #000;
+            border-radius: 10px;
             box-sizing: border-box;
             font-size: 1rem;
         }
 
         button {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background-color: #4f46e5;
             color: white;
-            border: 2px solid #000;
-            border-radius: 8px;
+            border: 3px solid #000;
+            border-radius: 10px;
             font-weight: bold;
             cursor: pointer;
             box-shadow: 4px 4px 0px #000;
             text-transform: uppercase;
+            transition: all 0.1s;
         }
 
         button:active {
             transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0px #000;
+            box-shadow: 1px 1px 0px #000;
         }
 
         .hidden { display: none; }
@@ -73,152 +78,175 @@
             background: #fff;
             margin-bottom: 10px;
             padding: 15px;
-            border: 2px solid #000;
-            border-radius: 10px;
+            border: 3px solid #000;
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 600;
+            text-align: left;
             transition: background 0.2s;
         }
 
-        .quiz-option:hover { background: #eef2ff; }
+        .quiz-option:hover { background: #f1f5f9; }
 
         .registro-item {
             display: flex;
             justify-content: space-between;
             padding: 10px;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 2px solid #e2e8f0;
             text-align: left;
         }
 
-        .grade-tag {
+        .grade-badge {
             background: #000;
             color: #fff;
-            padding: 2px 8px;
-            border-radius: 4px;
+            padding: 2px 10px;
+            border-radius: 6px;
             font-weight: bold;
+        }
+
+        .back-btn {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #64748b;
+            cursor: pointer;
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
 
-    <div class="container" id="app">
+    <div class="container">
         <!-- HEADER -->
         <div id="header">
             <h1>Liceo RPG</h1>
-            <p class="subtitle">Analisi Matematica I</p>
+            <p class="subtitle">Focus: Continuità, Limiti e Derivate</p>
         </div>
 
-        <!-- SCHERMATA LOGIN -->
+        <!-- LOGIN -->
         <div id="view-login">
-            <input id="std-name" type="text" placeholder="Tuo Nome">
-            <button onclick="startQuiz()">Inizia il Test</button>
-            <p style="margin-top: 20px; font-size: 0.8rem;">
-                <a href="#" onclick="showProf()" style="color: #4f46e5; font-weight: bold; text-decoration: none;">Accesso Docente</a>
-            </p>
+            <input id="std-name" type="text" placeholder="Inserisci il tuo nome">
+            <button onclick="startQuiz()">Inizia Esame</button>
+            <div class="back-btn" onclick="showProfAuth()">Area Docente</div>
         </div>
 
-        <!-- SCHERMATA QUIZ -->
+        <!-- AUTH DOCENTE -->
+        <div id="view-prof-auth" class="hidden">
+            <h3>ACCESSO REGISTRO</h3>
+            <input id="prof-pass" type="password" placeholder="Password Docente">
+            <button onclick="checkAuth()">Accedi</button>
+            <div class="back-btn" onclick="showView('view-login')">Indietro</div>
+        </div>
+
+        <!-- QUIZ -->
         <div id="view-quiz" class="hidden">
-            <p id="q-count" style="font-weight: bold; color: #4f46e5;"></p>
-            <h2 id="q-text" style="margin-bottom: 1.5rem;"></h2>
-            <div id="options-list"></div>
+            <p id="q-info" style="font-size: 0.7rem; font-weight: bold; color: #4f46e5;"></p>
+            <h2 id="q-text" style="font-size: 1.2rem; margin-bottom: 1.5rem;"></h2>
+            <div id="options-container"></div>
         </div>
 
-        <!-- SCHERMATA REGISTRO -->
+        <!-- REGISTRO -->
         <div id="view-prof" class="hidden">
-            <h2 style="text-transform: uppercase;">Registro Voti</h2>
-            <div id="voti-container" style="margin-bottom: 20px;">
-                <p style="color: #999; font-style: italic;">Nessun dato.</p>
-            </div>
-            <button onclick="showLogin()" style="background: #000;">Torna Indietro</button>
+            <h2 style="text-transform: uppercase;">Registro Sessione</h2>
+            <div id="voti-list" style="margin-bottom: 20px; max-height: 250px; overflow-y: auto;"></div>
+            <button onclick="showView('view-login')" style="background: #000;">Esci</button>
         </div>
     </div>
 
     <script>
-        // DATI LOCALE (Senza Firebase)
-        const domande = [
-            { q: "Qual è la derivata di x²?", a: ["x", "2x", "2", "x²"], c: 1 },
-            { q: "Il limite di 1/x per x che tende a infinito è:", a: ["Infinito", "1", "0", "E"], c: 2 },
-            { q: "Qual è la radice quadrata di 144?", a: ["12", "14", "16", "10"], c: 0 }
+        // DOMANDE MIRATE SU CONTINUITÀ, LIMITI, DERIVATE E STUDIO DI FUNZIONE
+        const dataset = [
+            { q: "Qual è il limite per x → 0 di (eˣ - 1) / x?", a: ["0", "1", "∞", "Non esiste"], c: 1 },
+            { q: "Una funzione f(x) è continua in x₀ se:", a: ["Esiste f(x₀)", "Il limite destro e sinistro coincidono con f(x₀)", "La derivata è positiva", "f(x₀) è positiva"], c: 1 },
+            { q: "Data f(x) = x², qual è il coefficiente angolare della tangente in x = 3?", a: ["3", "6", "9", "0"], c: 1 },
+            { q: "Se f'(x) > 0 in un intervallo, la funzione è:", a: ["Costante", "Crescente", "Decrescente", "Concava"], c: 1 },
+            { q: "Cosa indica un punto in cui f''(x) = 0 e cambia segno?", a: ["Massimo", "Minimo", "Flesso", "Asintoto"], c: 2 },
+            { q: "Qual è la derivata di f(x) = ln(x)?", a: ["eˣ", "x", "1/x", "1"], c: 2 },
+            { q: "Il limite per x → ∞ di (3x² + 2) / (x² - 1) è:", a: ["0", "2", "3", "∞"], c: 2 },
+            { q: "Quale tipo di discontinuità presenta f(x) = sin(x)/x in x = 0?", a: ["1° specie (salto)", "2° specie (infinito)", "3° specie (eliminabile)", "È continua"], c: 2 },
+            { q: "La derivata del prodotto di due funzioni [f(x)g(x)]' è:", a: ["f'g + fg'", "f'g'", "f' + g'", "fg' - f'g"], c: 0 },
+            { q: "In uno studio di funzione, f(x) = 0 determina:", a: ["Asintoti verticali", "Intersezioni con l'asse x", "Massimi e minimi", "Dominio"], c: 1 },
+            { q: "Qual è la derivata di sin(x)?", a: ["cos(x)", "-cos(x)", "tan(x)", "sin(x)"], c: 0 },
+            { q: "Se lim (x→c) f(x) = ∞, x = c è un:", a: ["Asintoto orizzontale", "Asintoto verticale", "Asintoto obliquo", "Punto di massimo"], c: 1 },
+            { q: "Qual è la derivata seconda di f(x) = x³?", a: ["3x²", "6x", "6", "x"], c: 1 },
+            { q: "Una funzione f(x) è pari se:", a: ["f(-x) = f(x)", "f(-x) = -f(x)", "f(x) = 0", "La derivata è costante"], c: 0 },
+            { q: "Il teorema di Weierstrass garantisce l'esistenza di max e min se la funzione è:", a: ["Solo derivabile", "Continua su un intervallo chiuso e limitato", "Positiva", "Periodica"], c: 1 }
         ];
 
-        let indexCorrente = 0;
-        let punteggio = 0;
-        let nomeUtente = "";
-        let registroVoti = []; // Simulazione database in memoria
+        let currentIdx = 0;
+        let score = 0;
+        let studentName = "";
+        let registro = [];
 
-        function showLogin() {
-            document.getElementById('view-login').classList.remove('hidden');
-            document.getElementById('view-quiz').classList.add('hidden');
-            document.getElementById('view-prof').classList.add('hidden');
+        function showView(id) {
+            document.querySelectorAll('.container > div').forEach(v => v.classList.add('hidden'));
             document.getElementById('header').classList.remove('hidden');
+            document.getElementById(id).classList.remove('hidden');
         }
 
-        function showProf() {
-            document.getElementById('view-login').classList.add('hidden');
-            document.getElementById('view-prof').classList.remove('hidden');
-            const cont = document.getElementById('voti-container');
-            
-            if(registroVoti.length === 0) {
-                cont.innerHTML = "<p>Nessun voto presente.</p>";
+        function showProfAuth() { showView('view-prof-auth'); document.getElementById('prof-pass').value = ""; }
+
+        function checkAuth() {
+            if(document.getElementById('prof-pass').value === "ProfDoc2026") {
+                showView('view-prof');
+                renderRegistro();
             } else {
-                cont.innerHTML = registroVoti.map(v => `
-                    <div class="registro-item">
-                        <span>${v.nome}</span>
-                        <span class="grade-tag">${v.voto}</span>
-                    </div>
-                `).join('');
+                alert("Password errata!");
             }
         }
 
         function startQuiz() {
-            nomeUtente = document.getElementById('std-name').value;
-            if(!nomeUtente) { alert("Inserisci il nome!"); return; }
-            
-            indexCorrente = 0;
-            punteggio = 0;
-            document.getElementById('view-login').classList.add('hidden');
+            studentName = document.getElementById('std-name').value.trim();
+            if(!studentName) return alert("Inserisci il tuo nome!");
+            currentIdx = 0;
+            score = 0;
+            showView('view-quiz');
             document.getElementById('header').classList.add('hidden');
-            document.getElementById('view-quiz').classList.remove('hidden');
-            caricaDomanda();
+            renderQ();
         }
 
-        function caricaDomanda() {
-            const data = domande[indexCorrente];
-            document.getElementById('q-count').innerText = `DOMANDA ${indexCorrente + 1} DI ${domande.length}`;
-            document.getElementById('q-text').innerText = data.q;
-            
-            const list = document.getElementById('options-list');
-            list.innerHTML = "";
-            
-            data.a.forEach((opt, i) => {
-                const d = document.createElement('div');
-                d.className = "quiz-option";
-                d.innerText = opt;
-                d.onclick = () => controllaRisposta(i);
-                list.appendChild(d);
+        function renderQ() {
+            const d = dataset[currentIdx];
+            document.getElementById('q-info').innerText = `QUESITO ${currentIdx + 1} / ${dataset.length}`;
+            document.getElementById('q-text').innerText = d.q;
+            const container = document.getElementById('options-container');
+            container.innerHTML = "";
+            d.a.forEach((opt, i) => {
+                const btn = document.createElement('div');
+                btn.className = "quiz-option";
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    if(i === d.c) score++;
+                    if(currentIdx < dataset.length - 1) {
+                        currentIdx++;
+                        renderQ();
+                    } else {
+                        endQuiz();
+                    }
+                };
+                container.appendChild(btn);
             });
         }
 
-        function controllaRisposta(i) {
-            if(i === domande[indexCorrente].c) punteggio++;
-            
-            if(indexCorrente < domande.length - 1) {
-                indexCorrente++;
-                caricaDomanda();
-            } else {
-                concludiQuiz();
-            }
+        function endQuiz() {
+            const finalGrade = ((score / dataset.length) * 10).toFixed(1);
+            alert(`Esame terminato, ${studentName}.\nVoto: ${finalGrade}/10 (${score} corrette)`);
+            registro.push({ name: studentName, grade: finalGrade });
+            showView('view-login');
+            document.getElementById('std-name').value = "";
         }
 
-        function concludiQuiz() {
-            const votoFinale = ((punteggio / domande.length) * 10).toFixed(1);
-            alert(`Test completato, ${nomeUtente}! Il tuo voto è: ${votoFinale}`);
-            
-            // Salvataggio nel registro temporaneo
-            registroVoti.push({ nome: nomeUtente, voto: votoFinale });
-            
-            showLogin();
+        function renderRegistro() {
+            const list = document.getElementById('voti-list');
+            if(registro.length === 0) {
+                list.innerHTML = "<p style='color:#999'>Nessun voto in memoria.</p>";
+            } else {
+                list.innerHTML = registro.map(r => `
+                    <div class="registro-item">
+                        <span><b>${r.name}</b></span>
+                        <span class="grade-badge">${r.grade}</span>
+                    </div>
+                `).join('');
+            }
         }
     </script>
 </body>
