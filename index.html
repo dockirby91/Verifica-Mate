@@ -3,326 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liceo Scientifico RPG - Dashboard Matematica</title>
+    <title>Aula Matematica RPG</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Firebase App (the core Firebase SDK) -->
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
-
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap');
-        body { font-family: 'Space Grotesk', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        .neo-shadow { box-shadow: 8px 8px 0px 0px rgba(0,0,0,1); }
-        .neo-border { border: 3px solid black; }
-        .btn-neo { 
-            border: 3px solid black; 
-            box-shadow: 4px 4px 0px 0px rgba(0,0,0,1); 
-            transition: all 0.1s;
-        }
-        .btn-neo:active { 
-            box-shadow: 0px 0px 0px 0px rgba(0,0,0,1); 
-            transform: translate(4px, 4px); 
-        }
+        .neo-box { border: 3px solid black; box-shadow: 5px 5px 0px black; }
+        .active-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px black; }
     </style>
 </head>
-<body class="bg-indigo-50 min-h-screen text-black">
+<body class="bg-blue-50 p-6 font-sans">
 
-    <div id="app" class="max-w-4xl mx-auto py-10 px-4">
-        <!-- Caricamento -->
-        <div id="loading-screen" class="flex flex-col items-center justify-center py-20">
-            <i class="fas fa-circle-notch fa-spin text-4xl text-indigo-600 mb-4"></i>
-            <p class="font-bold uppercase tracking-widest text-xs">Inizializzazione Aula Virtuale...</p>
+    <div id="app" class="max-w-md mx-auto">
+        <!-- HEADER -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-black italic uppercase tracking-tighter">Liceo RPG</h1>
+            <p class="text-gray-500 font-bold text-xs uppercase tracking-widest">Versione Offline (No Cloud)</p>
         </div>
 
-        <!-- Schermata Login -->
-        <div id="login-screen" class="hidden animate-in fade-in">
-            <div class="bg-white neo-border neo-shadow p-8 rounded-3xl max-w-md mx-auto">
-                <div class="text-center mb-8">
-                    <div class="inline-block p-4 bg-indigo-600 text-white rounded-2xl mb-4">
-                        <i class="fas fa-graduation-cap text-3xl"></i>
-                    </div>
-                    <h1 class="text-3xl font-black uppercase italic">Liceo RPG</h1>
-                    <p class="text-gray-500 font-medium">Portale di Analisi Matematica</p>
-                </div>
-
-                <div id="student-login-form">
-                    <label class="block font-black text-xs uppercase mb-2 tracking-widest">Nome Studente</label>
-                    <input id="student-name" type="text" placeholder="Es: Mario Rossi" class="w-full p-4 neo-border rounded-xl mb-6 outline-none focus:bg-indigo-50 transition-colors">
-                    <button onclick="startStudentQuiz()" class="w-full btn-neo bg-indigo-600 text-white py-4 font-black uppercase tracking-widest">Inizia il Test</button>
-                    <button onclick="showProfLogin()" class="w-full mt-4 font-bold text-gray-400 text-xs uppercase hover:text-black">Accesso Docente</button>
-                </div>
-
-                <div id="prof-login-form" class="hidden">
-                    <label class="block font-black text-xs uppercase mb-2 tracking-widest">Chiave Registro</label>
-                    <input id="prof-key" type="password" placeholder="••••••••" class="w-full p-4 neo-border rounded-xl mb-6 outline-none focus:bg-red-50">
-                    <button onclick="loginAsProf()" class="w-full btn-neo bg-black text-white py-4 font-black uppercase tracking-widest">Accedi al Registro</button>
-                    <button onclick="showStudentLogin()" class="w-full mt-4 font-bold text-gray-400 text-xs uppercase">Torna a Studente</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Schermata Quiz -->
-        <div id="quiz-screen" class="hidden space-y-8">
-            <div class="flex justify-between items-center">
-                <span id="quiz-progress-text" class="font-black uppercase text-xs text-indigo-600">Domanda 1/10</span>
-                <span id="display-user-name" class="bg-black text-white px-3 py-1 rounded font-bold text-xs uppercase"></span>
-            </div>
+        <!-- SCHERMATA LOGIN -->
+        <div id="view-login" class="bg-white p-8 rounded-2xl neo-box">
+            <input id="name-input" type="text" placeholder="Tuo Nome" class="w-full p-4 border-2 border-black rounded-xl mb-4 outline-none focus:bg-yellow-50">
+            <button onclick="startQuiz()" class="w-full bg-indigo-600 text-white font-black p-4 rounded-xl neo-box active-btn uppercase tracking-widest">Inizia il Test</button>
             
-            <div class="bg-white neo-border neo-shadow p-10 rounded-[2.5rem]">
-                <h2 id="question-text" class="text-3xl font-black mb-8 leading-tight">Caricamento domanda...</h2>
-                <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Opzioni iniettate via JS -->
-                </div>
+            <div class="mt-8 pt-6 border-t-2 border-dashed border-gray-200">
+                <p class="text-[10px] text-gray-400 font-bold uppercase mb-2">Accesso Riservato</p>
+                <button onclick="showProf()" class="text-xs font-black text-indigo-400 hover:text-indigo-600 uppercase">Registro Docente</button>
             </div>
         </div>
 
-        <!-- Schermata Risultati -->
-        <div id="result-screen" class="hidden">
-            <div class="bg-white neo-border neo-shadow p-12 rounded-[3rem] text-center max-w-lg mx-auto">
-                <div class="bg-green-100 text-green-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <i class="fas fa-check text-4xl"></i>
-                </div>
-                <h2 class="text-3xl font-black uppercase mb-2">Test Completato</h2>
-                <div class="text-8xl font-black text-indigo-600 my-6" id="final-grade">0.0</div>
-                <p class="text-gray-500 font-bold mb-8 uppercase text-xs tracking-widest">Il tuo voto è stato salvato nel registro.</p>
-                <button onclick="location.reload()" class="btn-neo bg-black text-white px-8 py-4 font-black uppercase tracking-widest">Ricomincia</button>
-            </div>
+        <!-- SCHERMATA QUIZ -->
+        <div id="view-quiz" class="hidden bg-white p-8 rounded-2xl neo-box">
+            <div id="progress" class="text-[10px] font-black text-indigo-600 mb-2 uppercase">Domanda 1/3</div>
+            <h2 id="question" class="text-2xl font-bold mb-6 italic">Caricamento...</h2>
+            <div id="options" class="flex flex-col gap-3"></div>
         </div>
 
-        <!-- Schermata Dashboard Prof -->
-        <div id="prof-dashboard" class="hidden space-y-8">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                <h1 class="text-4xl font-black uppercase italic tracking-tighter">Registro Digitale</h1>
-                <div class="flex gap-2">
-                    <button onclick="generateReport()" class="btn-neo bg-indigo-600 text-white px-6 py-3 font-black text-xs uppercase">✨ Analisi IA</button>
-                    <button onclick="location.reload()" class="btn-neo bg-white px-4 py-3"><i class="fas fa-redo"></i></button>
-                </div>
+        <!-- SCHERMATA REGISTRO (LOCALE) -->
+        <div id="view-prof" class="hidden bg-white p-8 rounded-2xl neo-box">
+            <h2 class="text-xl font-black mb-4 uppercase italic">Voti della Sessione</h2>
+            <p class="text-[10px] text-gray-400 mb-4 uppercase">Nota: Senza Cloud, i voti si cancellano se ricarichi la pagina.</p>
+            <div id="voti-list" class="space-y-2 mb-6">
+                <!-- Voti qui -->
             </div>
-
-            <div id="ai-report-box" class="hidden bg-indigo-900 text-white p-8 rounded-3xl neo-shadow mb-8 relative">
-                <button onclick="this.parentElement.classList.add('hidden')" class="absolute top-4 right-4 opacity-50"><i class="fas fa-times"></i></button>
-                <h3 class="font-black uppercase text-xs tracking-[0.3em] mb-4 text-indigo-300"><i class="fas fa-brain"></i> Rapporto Strategico IA</h3>
-                <p id="ai-report-text" class="italic leading-relaxed">Analisi in corso...</p>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2 space-y-4" id="results-list">
-                    <!-- Risultati iniettati via JS -->
-                </div>
-                <div class="space-y-4">
-                    <div class="bg-white neo-border neo-shadow p-8 rounded-3xl text-center">
-                        <span class="font-black text-gray-400 uppercase text-[10px] tracking-widest">Media Voti Classe</span>
-                        <div class="text-6xl font-black text-indigo-600 mt-2" id="avg-grade">0.0</div>
-                    </div>
-                </div>
-            </div>
+            <button onclick="showLogin()" class="w-full bg-black text-white p-3 rounded-xl font-bold uppercase text-xs">Torna Indietro</button>
         </div>
     </div>
 
-    <!-- Firebase Script Logic -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'math-rpg-v1';
-        const apiKey = ""; // Per Gemini
-
-        const PROF_KEY = "PROF2024";
+    <script>
         const QUESTIONS = [
-            { q: "lim(x→0) sin(x)/x", a: ["0", "1", "∞", "Non esiste"], c: 1 },
-            { q: "Derivata di x³", a: ["3x", "3x²", "x²", "2x³"], c: 1 },
-            { q: "f(x)=|x| in x=0 è:", a: ["Derivabile", "Continua ma non derivabile", "Discontinua", "Un asintoto"], c: 1 },
-            { q: "lim(x→∞) 1/x", a: ["∞", "1", "0", "-1"], c: 2 },
-            { q: "Derivata di ln(x)", a: ["eˣ", "x", "1/x", "1"], c: 2 }
+            { q: "Derivata di x²?", a: ["x", "2x", "2", "x²"], c: 1 },
+            { q: "lim(x→∞) 1/x?", a: ["∞", "1", "0", "e"], c: 2 },
+            { q: "Quanto fa 15 x 3?", a: ["45", "35", "55", "60"], c: 0 }
         ];
 
-        let currentUser = null;
-        let currentQuizIndex = 0;
+        let currentIdx = 0;
         let score = 0;
-        let userName = "";
-        let unsubscribeResults = null;
+        let studentName = "";
+        
+        // Array locale per simulare il database
+        let registroLocale = [];
 
-        // Inizializzazione Auth
-        const initAuth = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Auth error:", error);
-            }
-        };
+        function showLogin() {
+            document.querySelectorAll('#app > div').forEach(d => d.id !== 'app' && d.classList.add('hidden'));
+            document.getElementById('view-login').classList.remove('hidden');
+        }
 
-        initAuth();
+        function showProf() {
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-prof').classList.remove('hidden');
+            updateRegistroUI();
+        }
 
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            if (user) {
-                document.getElementById('loading-screen').classList.add('hidden');
-                document.getElementById('login-screen').classList.remove('hidden');
-                // Avvia il listener solo dopo l'autenticazione
-                initProfessorListener();
-            }
-        });
-
-        // Funzioni Navigazione Globale (esposte a Window per onclick)
-        window.showProfLogin = () => {
-            document.getElementById('student-login-form').classList.add('hidden');
-            document.getElementById('prof-login-form').classList.remove('hidden');
-        };
-
-        window.showStudentLogin = () => {
-            document.getElementById('prof-login-form').classList.add('hidden');
-            document.getElementById('student-login-form').classList.remove('hidden');
-        };
-
-        window.startStudentQuiz = () => {
-            userName = document.getElementById('student-name').value.trim();
-            if (!userName) return alert("Inserisci il tuo nome!");
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('quiz-screen').classList.remove('hidden');
-            document.getElementById('display-user-name').innerText = userName;
-            renderQuestion();
-        };
-
-        window.loginAsProf = () => {
-            const key = document.getElementById('prof-key').value;
-            if (key === PROF_KEY) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('prof-dashboard').classList.remove('hidden');
-            } else {
-                alert("Chiave errata!");
-            }
-        };
-
-        // Logica Quiz
-        function renderQuestion() {
-            const q = QUESTIONS[currentQuizIndex];
-            document.getElementById('quiz-progress-text').innerText = `Domanda ${currentQuizIndex + 1}/${QUESTIONS.length}`;
-            document.getElementById('question-text').innerText = q.q;
+        function startQuiz() {
+            studentName = document.getElementById('name-input').value.trim();
+            if(!studentName) return alert("Inserisci il nome!");
             
-            const container = document.getElementById('options-container');
+            currentIdx = 0;
+            score = 0;
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-quiz').classList.remove('hidden');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const data = QUESTIONS[currentIdx];
+            document.getElementById('progress').innerText = `Domanda ${currentIdx + 1}/${QUESTIONS.length}`;
+            document.getElementById('question').innerText = data.q;
+            
+            const container = document.getElementById('options');
             container.innerHTML = "";
-            q.a.forEach((opt, i) => {
+            
+            data.a.forEach((opt, i) => {
                 const btn = document.createElement('button');
-                btn.className = "p-6 text-left neo-border rounded-2xl font-bold bg-white hover:bg-indigo-50 transition-all";
+                btn.className = "p-4 border-2 border-black rounded-xl font-bold text-left hover:bg-indigo-50 active-btn transition-colors";
                 btn.innerText = opt;
-                btn.onclick = () => handleAnswer(i);
+                btn.onclick = () => {
+                    if(i === data.c) score++;
+                    if(currentIdx < QUESTIONS.length - 1) {
+                        currentIdx++;
+                        renderQuestion();
+                    } else {
+                        finishQuiz();
+                    }
+                };
                 container.appendChild(btn);
             });
         }
 
-        async function handleAnswer(index) {
-            if (index === QUESTIONS[currentQuizIndex].c) score++;
+        function finishQuiz() {
+            const grade = ((score / QUESTIONS.length) * 10).toFixed(1);
+            alert(`Complimenti ${studentName}! Hai preso ${grade}`);
             
-            if (currentQuizIndex < QUESTIONS.length - 1) {
-                currentQuizIndex++;
-                renderQuestion();
-            } else {
-                const grade = (score / QUESTIONS.length) * 10;
-                await saveResult(grade);
-                showResults(grade);
-            }
-        }
-
-        async function saveResult(grade) {
-            if (!currentUser) return;
-            try {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'results', currentUser.uid), {
-                    name: userName,
-                    grade: grade.toFixed(1),
-                    timestamp: Date.now()
-                });
-            } catch (e) { console.error(e); }
-        }
-
-        function showResults(grade) {
-            document.getElementById('quiz-screen').classList.add('hidden');
-            document.getElementById('result-screen').classList.remove('hidden');
-            document.getElementById('final-grade').innerText = grade.toFixed(1);
-        }
-
-        // Logica Dashboard Prof
-        function initProfessorListener() {
-            // Rimuovi eventuale listener precedente
-            if (unsubscribeResults) unsubscribeResults();
+            // Salvataggio nel database locale (solo per questa sessione)
+            registroLocale.push({ name: studentName, grade: grade, date: new Date().toLocaleTimeString() });
             
-            if (!currentUser) return;
-
-            const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'results'));
-            unsubscribeResults = onSnapshot(q, (snapshot) => {
-                const results = snapshot.docs.map(d => d.data());
-                updateProfUI(results);
-            }, (error) => {
-                console.error("Firestore error:", error);
-            });
+            showLogin();
         }
 
-        function updateProfUI(results) {
-            const list = document.getElementById('results-list');
-            list.innerHTML = "";
-            let totalGrade = 0;
-
-            if (results.length === 0) {
-                list.innerHTML = "<div class='p-10 text-center text-gray-400 font-bold'>Nessun dato ancora disponibile.</div>";
+        function updateRegistroUI() {
+            const list = document.getElementById('voti-list');
+            if(registroLocale.length === 0) {
+                list.innerHTML = "<p class='text-gray-400 italic text-sm text-center py-4'>Nessun voto registrato.</p>";
+                return;
             }
-
-            results.sort((a,b) => b.timestamp - a.timestamp).forEach(res => {
-                totalGrade += parseFloat(res.grade);
-                const item = document.createElement('div');
-                item.className = "bg-white p-6 rounded-2xl neo-border flex justify-between items-center";
-                item.innerHTML = `
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 bg-black text-white rounded flex items-center justify-center font-black">${res.name ? res.name[0] : '?'}</div>
-                        <span class="font-bold">${res.name || 'Anonimo'}</span>
+            
+            list.innerHTML = registroLocale.map(item => `
+                <div class="flex justify-between items-center p-3 border-2 border-black rounded-lg bg-indigo-50">
+                    <div>
+                        <p class="font-black text-sm uppercase">${item.name}</p>
+                        <p class="text-[8px] text-gray-500 uppercase">${item.date}</p>
                     </div>
-                    <div class="font-black text-xl ${res.grade >= 6 ? 'text-green-600' : 'text-red-600'}">${res.grade}</div>
-                `;
-                list.appendChild(item);
-            });
-
-            document.getElementById('avg-grade').innerText = results.length > 0 ? (totalGrade / results.length).toFixed(1) : "0.0";
-            window.allClassResults = results; // Per Gemini
+                    <div class="text-xl font-black text-indigo-600">${item.grade}</div>
+                </div>
+            `).join('');
         }
-
-        // Integrazione Gemini per Rapporto
-        window.generateReport = async () => {
-            if (!window.allClassResults || window.allClassResults.length === 0) return alert("Dati insufficienti.");
-            
-            const box = document.getElementById('ai-report-box');
-            const text = document.getElementById('ai-report-text');
-            box.classList.remove('hidden');
-            text.innerText = "L'intelligenza artificiale sta analizzando i voti...";
-
-            const stats = window.allClassResults.map(r => `${r.name}: ${r.grade}`).join(", ");
-            const prompt = `Analizza i seguenti risultati scolastici: ${stats}. Fornisci un breve consiglio didattico per il professore su come migliorare la classe. Rispondi in italiano in max 50 parole.`;
-
-            try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }],
-                        systemInstruction: { parts: [{ text: "Sei un esperto pedagogista." }] }
-                    })
-                });
-                const data = await response.json();
-                text.innerText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Impossibile generare il rapporto.";
-            } catch (e) {
-                text.innerText = "Errore di connessione con l'IA.";
-            }
-        };
-
     </script>
 </body>
 </html>
