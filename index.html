@@ -125,7 +125,7 @@
     <!-- Firebase Script Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = JSON.parse(__firebase_config);
@@ -148,14 +148,31 @@
         let currentQuizIndex = 0;
         let score = 0;
         let userName = "";
+        let unsubscribeResults = null;
 
         // Inizializzazione Auth
-        signInAnonymously(auth).catch(console.error);
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
+            }
+        };
+
+        initAuth();
+
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
-            document.getElementById('loading-screen').classList.add('hidden');
-            document.getElementById('login-screen').classList.remove('hidden');
-            initProfessorListener();
+            if (user) {
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('login-screen').classList.remove('hidden');
+                // Avvia il listener solo dopo l'autenticazione
+                initProfessorListener();
+            }
         });
 
         // Funzioni Navigazione Globale (esposte a Window per onclick)
@@ -237,10 +254,17 @@
 
         // Logica Dashboard Prof
         function initProfessorListener() {
+            // Rimuovi eventuale listener precedente
+            if (unsubscribeResults) unsubscribeResults();
+            
+            if (!currentUser) return;
+
             const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'results'));
-            onSnapshot(q, (snapshot) => {
+            unsubscribeResults = onSnapshot(q, (snapshot) => {
                 const results = snapshot.docs.map(d => d.data());
                 updateProfUI(results);
+            }, (error) => {
+                console.error("Firestore error:", error);
             });
         }
 
@@ -259,8 +283,8 @@
                 item.className = "bg-white p-6 rounded-2xl neo-border flex justify-between items-center";
                 item.innerHTML = `
                     <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 bg-black text-white rounded flex items-center justify-center font-black">${res.name[0]}</div>
-                        <span class="font-bold">${res.name}</span>
+                        <div class="w-10 h-10 bg-black text-white rounded flex items-center justify-center font-black">${res.name ? res.name[0] : '?'}</div>
+                        <span class="font-bold">${res.name || 'Anonimo'}</span>
                     </div>
                     <div class="font-black text-xl ${res.grade >= 6 ? 'text-green-600' : 'text-red-600'}">${res.grade}</div>
                 `;
