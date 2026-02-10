@@ -3,138 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aula Matematica RPG</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Sito Matematica RPG</title>
     <style>
-        .neo-box { border: 3px solid black; box-shadow: 5px 5px 0px black; }
-        .active-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px black; }
+        /* CSS INTERNO - NESSUNA DIPENDENZA ESTERNA */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 10px 10px 0px #000;
+            border: 3px solid #000;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h1 {
+            text-transform: uppercase;
+            font-style: italic;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 1rem;
+            border: 2px solid #000;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4f46e5;
+            color: white;
+            border: 2px solid #000;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px #000;
+            text-transform: uppercase;
+        }
+
+        button:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #000;
+        }
+
+        .hidden { display: none; }
+
+        .quiz-option {
+            background: #fff;
+            margin-bottom: 10px;
+            padding: 15px;
+            border: 2px solid #000;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .quiz-option:hover { background: #eef2ff; }
+
+        .registro-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .grade-tag {
+            background: #000;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
     </style>
 </head>
-<body class="bg-blue-50 p-6 font-sans">
+<body>
 
-    <div id="app" class="max-w-md mx-auto">
+    <div class="container" id="app">
         <!-- HEADER -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-black italic uppercase tracking-tighter">Liceo RPG</h1>
-            <p class="text-gray-500 font-bold text-xs uppercase tracking-widest">Versione Offline (No Cloud)</p>
+        <div id="header">
+            <h1>Liceo RPG</h1>
+            <p class="subtitle">Analisi Matematica I</p>
         </div>
 
         <!-- SCHERMATA LOGIN -->
-        <div id="view-login" class="bg-white p-8 rounded-2xl neo-box">
-            <input id="name-input" type="text" placeholder="Tuo Nome" class="w-full p-4 border-2 border-black rounded-xl mb-4 outline-none focus:bg-yellow-50">
-            <button onclick="startQuiz()" class="w-full bg-indigo-600 text-white font-black p-4 rounded-xl neo-box active-btn uppercase tracking-widest">Inizia il Test</button>
-            
-            <div class="mt-8 pt-6 border-t-2 border-dashed border-gray-200">
-                <p class="text-[10px] text-gray-400 font-bold uppercase mb-2">Accesso Riservato</p>
-                <button onclick="showProf()" class="text-xs font-black text-indigo-400 hover:text-indigo-600 uppercase">Registro Docente</button>
-            </div>
+        <div id="view-login">
+            <input id="std-name" type="text" placeholder="Tuo Nome">
+            <button onclick="startQuiz()">Inizia il Test</button>
+            <p style="margin-top: 20px; font-size: 0.8rem;">
+                <a href="#" onclick="showProf()" style="color: #4f46e5; font-weight: bold; text-decoration: none;">Accesso Docente</a>
+            </p>
         </div>
 
         <!-- SCHERMATA QUIZ -->
-        <div id="view-quiz" class="hidden bg-white p-8 rounded-2xl neo-box">
-            <div id="progress" class="text-[10px] font-black text-indigo-600 mb-2 uppercase">Domanda 1/3</div>
-            <h2 id="question" class="text-2xl font-bold mb-6 italic">Caricamento...</h2>
-            <div id="options" class="flex flex-col gap-3"></div>
+        <div id="view-quiz" class="hidden">
+            <p id="q-count" style="font-weight: bold; color: #4f46e5;"></p>
+            <h2 id="q-text" style="margin-bottom: 1.5rem;"></h2>
+            <div id="options-list"></div>
         </div>
 
-        <!-- SCHERMATA REGISTRO (LOCALE) -->
-        <div id="view-prof" class="hidden bg-white p-8 rounded-2xl neo-box">
-            <h2 class="text-xl font-black mb-4 uppercase italic">Voti della Sessione</h2>
-            <p class="text-[10px] text-gray-400 mb-4 uppercase">Nota: Senza Cloud, i voti si cancellano se ricarichi la pagina.</p>
-            <div id="voti-list" class="space-y-2 mb-6">
-                <!-- Voti qui -->
+        <!-- SCHERMATA REGISTRO -->
+        <div id="view-prof" class="hidden">
+            <h2 style="text-transform: uppercase;">Registro Voti</h2>
+            <div id="voti-container" style="margin-bottom: 20px;">
+                <p style="color: #999; font-style: italic;">Nessun dato.</p>
             </div>
-            <button onclick="showLogin()" class="w-full bg-black text-white p-3 rounded-xl font-bold uppercase text-xs">Torna Indietro</button>
+            <button onclick="showLogin()" style="background: #000;">Torna Indietro</button>
         </div>
     </div>
 
     <script>
-        const QUESTIONS = [
-            { q: "Derivata di x²?", a: ["x", "2x", "2", "x²"], c: 1 },
-            { q: "lim(x→∞) 1/x?", a: ["∞", "1", "0", "e"], c: 2 },
-            { q: "Quanto fa 15 x 3?", a: ["45", "35", "55", "60"], c: 0 }
+        // DATI LOCALE (Senza Firebase)
+        const domande = [
+            { q: "Qual è la derivata di x²?", a: ["x", "2x", "2", "x²"], c: 1 },
+            { q: "Il limite di 1/x per x che tende a infinito è:", a: ["Infinito", "1", "0", "E"], c: 2 },
+            { q: "Qual è la radice quadrata di 144?", a: ["12", "14", "16", "10"], c: 0 }
         ];
 
-        let currentIdx = 0;
-        let score = 0;
-        let studentName = "";
-        
-        // Array locale per simulare il database
-        let registroLocale = [];
+        let indexCorrente = 0;
+        let punteggio = 0;
+        let nomeUtente = "";
+        let registroVoti = []; // Simulazione database in memoria
 
         function showLogin() {
-            document.querySelectorAll('#app > div').forEach(d => d.id !== 'app' && d.classList.add('hidden'));
             document.getElementById('view-login').classList.remove('hidden');
+            document.getElementById('view-quiz').classList.add('hidden');
+            document.getElementById('view-prof').classList.add('hidden');
+            document.getElementById('header').classList.remove('hidden');
         }
 
         function showProf() {
             document.getElementById('view-login').classList.add('hidden');
             document.getElementById('view-prof').classList.remove('hidden');
-            updateRegistroUI();
+            const cont = document.getElementById('voti-container');
+            
+            if(registroVoti.length === 0) {
+                cont.innerHTML = "<p>Nessun voto presente.</p>";
+            } else {
+                cont.innerHTML = registroVoti.map(v => `
+                    <div class="registro-item">
+                        <span>${v.nome}</span>
+                        <span class="grade-tag">${v.voto}</span>
+                    </div>
+                `).join('');
+            }
         }
 
         function startQuiz() {
-            studentName = document.getElementById('name-input').value.trim();
-            if(!studentName) return alert("Inserisci il nome!");
+            nomeUtente = document.getElementById('std-name').value;
+            if(!nomeUtente) { alert("Inserisci il nome!"); return; }
             
-            currentIdx = 0;
-            score = 0;
+            indexCorrente = 0;
+            punteggio = 0;
             document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('header').classList.add('hidden');
             document.getElementById('view-quiz').classList.remove('hidden');
-            renderQuestion();
+            caricaDomanda();
         }
 
-        function renderQuestion() {
-            const data = QUESTIONS[currentIdx];
-            document.getElementById('progress').innerText = `Domanda ${currentIdx + 1}/${QUESTIONS.length}`;
-            document.getElementById('question').innerText = data.q;
+        function caricaDomanda() {
+            const data = domande[indexCorrente];
+            document.getElementById('q-count').innerText = `DOMANDA ${indexCorrente + 1} DI ${domande.length}`;
+            document.getElementById('q-text').innerText = data.q;
             
-            const container = document.getElementById('options');
-            container.innerHTML = "";
+            const list = document.getElementById('options-list');
+            list.innerHTML = "";
             
             data.a.forEach((opt, i) => {
-                const btn = document.createElement('button');
-                btn.className = "p-4 border-2 border-black rounded-xl font-bold text-left hover:bg-indigo-50 active-btn transition-colors";
-                btn.innerText = opt;
-                btn.onclick = () => {
-                    if(i === data.c) score++;
-                    if(currentIdx < QUESTIONS.length - 1) {
-                        currentIdx++;
-                        renderQuestion();
-                    } else {
-                        finishQuiz();
-                    }
-                };
-                container.appendChild(btn);
+                const d = document.createElement('div');
+                d.className = "quiz-option";
+                d.innerText = opt;
+                d.onclick = () => controllaRisposta(i);
+                list.appendChild(d);
             });
         }
 
-        function finishQuiz() {
-            const grade = ((score / QUESTIONS.length) * 10).toFixed(1);
-            alert(`Complimenti ${studentName}! Hai preso ${grade}`);
+        function controllaRisposta(i) {
+            if(i === domande[indexCorrente].c) punteggio++;
             
-            // Salvataggio nel database locale (solo per questa sessione)
-            registroLocale.push({ name: studentName, grade: grade, date: new Date().toLocaleTimeString() });
-            
-            showLogin();
+            if(indexCorrente < domande.length - 1) {
+                indexCorrente++;
+                caricaDomanda();
+            } else {
+                concludiQuiz();
+            }
         }
 
-        function updateRegistroUI() {
-            const list = document.getElementById('voti-list');
-            if(registroLocale.length === 0) {
-                list.innerHTML = "<p class='text-gray-400 italic text-sm text-center py-4'>Nessun voto registrato.</p>";
-                return;
-            }
+        function concludiQuiz() {
+            const votoFinale = ((punteggio / domande.length) * 10).toFixed(1);
+            alert(`Test completato, ${nomeUtente}! Il tuo voto è: ${votoFinale}`);
             
-            list.innerHTML = registroLocale.map(item => `
-                <div class="flex justify-between items-center p-3 border-2 border-black rounded-lg bg-indigo-50">
-                    <div>
-                        <p class="font-black text-sm uppercase">${item.name}</p>
-                        <p class="text-[8px] text-gray-500 uppercase">${item.date}</p>
-                    </div>
-                    <div class="text-xl font-black text-indigo-600">${item.grade}</div>
-                </div>
-            `).join('');
+            // Salvataggio nel registro temporaneo
+            registroVoti.push({ nome: nomeUtente, voto: votoFinale });
+            
+            showLogin();
         }
     </script>
 </body>
