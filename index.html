@@ -71,7 +71,7 @@
 
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'analisi-final-v3';
     let db = null;
-    let isFirebaseReady = false;
+    let isFirebaseReady = true;
 
     async function initFirebase() {
         const statusEl = document.getElementById('debug-status');
@@ -83,7 +83,7 @@
                 config = MY_MANUAL_CONFIG;
             }
 
-            if (!config.apiKey || config.apiKey === "INSERISCI_QUI") throw "Config mancante";
+            if (!config.apiKey || config.apiKey === "AIzaSyDDHFGjW_oiCiP7MhdBRq9vqWHAvjTfDws") throw "Config mancante";
 
             firebase.initializeApp(config);
             db = firebase.firestore();
@@ -208,4 +208,5 @@
 </script>
 </body>
 </html>
+
 
