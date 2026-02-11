@@ -59,51 +59,37 @@
 
 <script>
     // --- CONFIGURAZIONE MANUALE ---
-    const MY_MANUAL_CONFIG = {
-        apiKey: "INSERISCI_QUI",
-        authDomain: "INSERISCI_QUI",
-        projectId: "INSERISCI_QUI",
-        storageBucket: "INSERISCI_QUI",
-        messagingSenderId: "INSERISCI_QUI",
-        appId: "INSERISCI_QUI"
-    };
+    // Sostituisci il vecchio init con questo
+async function initFirebase() {
+    const statusEl = document.getElementById('debug-status');
+    try {
+        const firebaseConfig = {
+            apiKey: "AIzaSyDDHFGjW_oiCiP7MhdBRq9vqWHAvjTfDws",
+            authDomain: "compito-di-mate.firebaseapp.com",
+            projectId: "compito-di-mate",
+            storageBucket: "compito-di-mate.firebasestorage.app",
+            messagingSenderId: "306562904610",
+            appId: "1:306562904610:web:c80a54eea6157e7108507b",
+            measurementId: "G-MHV0KWER9G"
+        };
 
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'analisi-final-v3';
-    let db = null;
-    let isFirebaseReady = false;
-
-    async function initFirebase() {
-        const statusEl = document.getElementById('debug-status');
-        try {
-            let config;
-            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                config = JSON.parse(__firebase_config);
-            } else {
-                config = MY_MANUAL_CONFIG;
-            }
-
-            if (!config.apiKey || config.apiKey === "INSERISCI_QUI") throw "Config mancante";
-
-            firebase.initializeApp(config);
-            db = firebase.firestore();
-            const auth = firebase.auth();
-            
-            // Regola 3: Autenticazione prima delle query
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await auth.signInWithCustomToken(__initial_auth_token);
-            } else {
-                await auth.signInAnonymously();
-            }
-
-            isFirebaseReady = true;
-            statusEl.innerText = "DB CONNESSO";
-            statusEl.className = "online";
-        } catch (e) {
-            console.error("Firebase Init Error:", e);
-            statusEl.innerText = "DB OFFLINE";
-            statusEl.className = "offline";
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
         }
+        
+        db = firebase.firestore();
+        // Importante: attendi il login anonimo
+        await firebase.auth().signInAnonymously();
+
+        isFirebaseReady = true;
+        statusEl.innerText = "DB CONNESSO";
+        statusEl.className = "online";
+    } catch (e) {
+        console.error("Errore:", e);
+        statusEl.innerText = "ERRORE CONNESSIONE";
+        statusEl.className = "offline";
     }
+}
 
     const domande = [
         { q: "Qual è il limite per x → 0 di (eˣ - 1) / x?", a: ["0", "1", "e", "∞"], c: 1 },
@@ -207,4 +193,5 @@
 </script>
 </body>
 </html>
+
 
