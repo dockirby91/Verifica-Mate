@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liceo RPG - Test Analisi</title>
+    <title>Liceo RPG - Test Analisi AI</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -65,11 +65,17 @@
             box-shadow: 4px 4px 0px #000;
             text-transform: uppercase;
             transition: all 0.1s;
+            margin-bottom: 0.5rem;
         }
 
         button:active {
             transform: translate(2px, 2px);
             box-shadow: 1px 1px 0px #000;
+        }
+
+        .btn-ai {
+            background-color: #8b5cf6;
+            margin-top: 10px;
         }
 
         .hidden { display: none; }
@@ -111,6 +117,30 @@
             cursor: pointer;
             text-decoration: underline;
         }
+
+        #ai-response-area {
+            background: #f5f3ff;
+            border: 2px dashed #8b5cf6;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            text-align: left;
+            font-size: 0.9rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(139, 92, 246, 0.3);
+            border-radius: 50%;
+            border-top-color: #8b5cf6;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -119,7 +149,7 @@
         <!-- HEADER -->
         <div id="header">
             <h1>Liceo RPG</h1>
-            <p class="subtitle">Focus: Continuità, Limiti e Derivate</p>
+            <p class="subtitle">Analisi Matematica ✨ AI Powered</p>
         </div>
 
         <!-- LOGIN -->
@@ -144,43 +174,83 @@
             <div id="options-container"></div>
         </div>
 
+        <!-- RISULTATO STUDENTE -->
+        <div id="view-result" class="hidden">
+            <h2 id="result-title">Test Completato!</h2>
+            <div id="final-score-display" style="font-size: 3rem; font-weight: 900; margin: 1rem 0;"></div>
+            <button onclick="getAiFeedback()" class="btn-ai">Spiegami gli errori ✨</button>
+            <div id="ai-response-area" class="hidden"></div>
+            <button onclick="showView('view-login')" style="background: #000; margin-top: 10px;">Torna alla Home</button>
+        </div>
+
         <!-- REGISTRO -->
         <div id="view-prof" class="hidden">
             <h2 style="text-transform: uppercase;">Registro Sessione</h2>
             <div id="voti-list" style="margin-bottom: 20px; max-height: 250px; overflow-y: auto;"></div>
+            <button onclick="generateClassReport()" class="btn-ai">Report Classe ✨</button>
+            <div id="ai-report-area" class="hidden" style="text-align: left; font-size: 0.8rem; background: #f0fdf4; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #22c55e;"></div>
             <button onclick="showView('view-login')" style="background: #000;">Esci</button>
         </div>
     </div>
 
     <script>
-        // DOMANDE MIRATE SU CONTINUITÀ, LIMITI, DERIVATE E STUDIO DI FUNZIONE
+        const apiKey = ""; // Gestito dall'ambiente
+
         const dataset = [
-            { q: "Qual è il limite per x → 0 di (eˣ - 1) / x?", a: ["0", "1", "∞", "Non esiste"], c: 1 },
-            { q: "Una funzione f(x) è continua in x₀ se:", a: ["Esiste f(x₀)", "Il limite destro e sinistro coincidono con f(x₀)", "La derivata è positiva", "f(x₀) è positiva"], c: 1 },
-            { q: "Data f(x) = x², qual è il coefficiente angolare della tangente in x = 3?", a: ["3", "6", "9", "0"], c: 1 },
-            { q: "Se f'(x) > 0 in un intervallo, la funzione è:", a: ["Costante", "Crescente", "Decrescente", "Concava"], c: 1 },
-            { q: "Cosa indica un punto in cui f''(x) = 0 e cambia segno?", a: ["Massimo", "Minimo", "Flesso", "Asintoto"], c: 2 },
-            { q: "Qual è la derivata di f(x) = ln(x)?", a: ["eˣ", "x", "1/x", "1"], c: 2 },
-            { q: "Il limite per x → ∞ di (3x² + 2) / (x² - 1) è:", a: ["0", "2", "3", "∞"], c: 2 },
-            { q: "Quale tipo di discontinuità presenta f(x) = sin(x)/x in x = 0?", a: ["1° specie (salto)", "2° specie (infinito)", "3° specie (eliminabile)", "È continua"], c: 2 },
-            { q: "La derivata del prodotto di due funzioni [f(x)g(x)]' è:", a: ["f'g + fg'", "f'g'", "f' + g'", "fg' - f'g"], c: 0 },
-            { q: "In uno studio di funzione, f(x) = 0 determina:", a: ["Asintoti verticali", "Intersezioni con l'asse x", "Massimi e minimi", "Dominio"], c: 1 },
-            { q: "Qual è la derivata di sin(x)?", a: ["cos(x)", "-cos(x)", "tan(x)", "sin(x)"], c: 0 },
-            { q: "Se lim (x→c) f(x) = ∞, x = c è un:", a: ["Asintoto orizzontale", "Asintoto verticale", "Asintoto obliquo", "Punto di massimo"], c: 1 },
-            { q: "Qual è la derivata seconda di f(x) = x³?", a: ["3x²", "6x", "6", "x"], c: 1 },
-            { q: "Una funzione f(x) è pari se:", a: ["f(-x) = f(x)", "f(-x) = -f(x)", "f(x) = 0", "La derivata è costante"], c: 0 },
-            { q: "Il teorema di Weierstrass garantisce l'esistenza di max e min se la funzione è:", a: ["Solo derivabile", "Continua su un intervallo chiuso e limitato", "Positiva", "Periodica"], c: 1 }
+            { q: "Qual è il limite per x → 0 di (eˣ - 1) / x?", a: ["0", "1", "∞", "Non esiste"], c: 1, topic: "Limiti Notevoli" },
+            { q: "Una funzione f(x) è continua in x₀ se:", a: ["Esiste f(x₀)", "Il limite destro e sinistro coincidono con f(x₀)", "La derivata è positiva", "f(x₀) è positiva"], c: 1, topic: "Continuità" },
+            { q: "Data f(x) = x², qual è il coefficiente angolare della tangente in x = 3?", a: ["3", "6", "9", "0"], c: 1, topic: "Derivate" },
+            { q: "Se f'(x) > 0 in un intervallo, la funzione è:", a: ["Costante", "Crescente", "Decrescente", "Concava"], c: 1, topic: "Studio di Funzione" },
+            { q: "Cosa indica un punto in cui f''(x) = 0 e cambia segno?", a: ["Massimo", "Minimo", "Flesso", "Asintoto"], c: 2, topic: "Studio di Funzione" },
+            { q: "Qual è la derivata di f(x) = ln(x)?", a: ["eˣ", "x", "1/x", "1"], c: 2, topic: "Derivate" },
+            { q: "Il limite per x → ∞ di (3x² + 2) / (x² - 1) è:", a: ["0", "2", "3", "∞"], c: 2, topic: "Limiti" },
+            { q: "Quale tipo di discontinuità presenta f(x) = sin(x)/x in x = 0?", a: ["1° specie (salto)", "2° specie (infinito)", "3° specie (eliminabile)", "È continua"], c: 2, topic: "Continuità" },
+            { q: "La derivata del prodotto di due funzioni [f(x)g(x)]' è:", a: ["f'g + fg'", "f'g'", "f' + g'", "fg' - f'g"], c: 0, topic: "Derivate" },
+            { q: "In uno studio di funzione, f(x) = 0 determina:", a: ["Asintoti verticali", "Intersezioni con l'asse x", "Massimi e minimi", "Dominio"], c: 1, topic: "Studio di Funzione" },
+            { q: "Qual è la derivata di sin(x)?", a: ["cos(x)", "-cos(x)", "tan(x)", "sin(x)"], c: 0, topic: "Derivate" },
+            { q: "Se lim (x→c) f(x) = ∞, x = c è un:", a: ["Asintoto orizzontale", "Asintoto verticale", "Asintoto obliquo", "Punto di massimo"], c: 1, topic: "Limiti" },
+            { q: "Qual è la derivata seconda di f(x) = x³?", a: ["3x²", "6x", "6", "x"], c: 1, topic: "Derivate" },
+            { q: "Una funzione f(x) è pari se:", a: ["f(-x) = f(x)", "f(-x) = -f(x)", "f(x) = 0", "La derivata è costante"], c: 0, topic: "Studio di Funzione" },
+            { q: "Il teorema di Weierstrass garantisce l'esistenza di max e min se la funzione è:", a: ["Solo derivabile", "Continua su un intervallo chiuso e limitato", "Positiva", "Periodica"], c: 1, topic: "Continuità" }
         ];
 
         let currentIdx = 0;
         let score = 0;
         let studentName = "";
         let registro = [];
+        let wrongAnswers = [];
+
+        async function callGemini(prompt, systemInstruction = "") {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: systemInstruction }] }
+            };
+
+            let retries = 0;
+            const delays = [1000, 2000, 4000, 8000, 16000];
+
+            while (retries < 5) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    return result.candidates?.[0]?.content?.parts?.[0]?.text;
+                } catch (e) {
+                    retries++;
+                    if (retries === 5) throw e;
+                    await new Promise(r => setTimeout(r, delays[retries-1]));
+                }
+            }
+        }
 
         function showView(id) {
             document.querySelectorAll('.container > div').forEach(v => v.classList.add('hidden'));
             document.getElementById('header').classList.remove('hidden');
             document.getElementById(id).classList.remove('hidden');
+            if(id === 'view-login') document.getElementById('ai-response-area').classList.add('hidden');
         }
 
         function showProfAuth() { showView('view-prof-auth'); document.getElementById('prof-pass').value = ""; }
@@ -199,6 +269,7 @@
             if(!studentName) return alert("Inserisci il tuo nome!");
             currentIdx = 0;
             score = 0;
+            wrongAnswers = [];
             showView('view-quiz');
             document.getElementById('header').classList.add('hidden');
             renderQ();
@@ -215,7 +286,16 @@
                 btn.className = "quiz-option";
                 btn.innerText = opt;
                 btn.onclick = () => {
-                    if(i === d.c) score++;
+                    if(i === d.c) {
+                        score++;
+                    } else {
+                        wrongAnswers.push({
+                            question: d.q,
+                            yourAnswer: opt,
+                            correctAnswer: d.a[d.c],
+                            topic: d.topic
+                        });
+                    }
                     if(currentIdx < dataset.length - 1) {
                         currentIdx++;
                         renderQ();
@@ -229,10 +309,54 @@
 
         function endQuiz() {
             const finalGrade = ((score / dataset.length) * 10).toFixed(1);
-            alert(`Esame terminato, ${studentName}.\nVoto: ${finalGrade}/10 (${score} corrette)`);
-            registro.push({ name: studentName, grade: finalGrade });
-            showView('view-login');
-            document.getElementById('std-name').value = "";
+            document.getElementById('final-score-display').innerText = `${finalGrade}/10`;
+            registro.push({ name: studentName, grade: finalGrade, wrongCount: wrongAnswers.length });
+            showView('view-result');
+        }
+
+        async function getAiFeedback() {
+            const area = document.getElementById('ai-response-area');
+            area.classList.remove('hidden');
+            area.innerHTML = `<div class="loading-spinner"></div> Sto analizzando i tuoi errori...`;
+
+            if(wrongAnswers.length === 0) {
+                area.innerHTML = "✨ <b>Perfetto!</b> Non hai commesso errori. Sei pronto per l'esame di Stato!";
+                return;
+            }
+
+            const prompt = `Lo studente ${studentName} ha ottenuto ${score}/${dataset.length}. 
+            Errori commessi: ${JSON.stringify(wrongAnswers)}. 
+            Spiega brevemente perché le risposte erano sbagliate e dai un consiglio motivazionale in stile RPG (come se fossi un saggio mago della matematica).`;
+            
+            const system = "Sei un tutor di Analisi Matematica esperto. Rispondi in italiano in modo chiaro, conciso e incoraggiante.";
+
+            try {
+                const feedback = await callGemini(prompt, system);
+                area.innerHTML = `✨ <b>Il Saggio dice:</b><br>${feedback.replace(/\n/g, '<br>')}`;
+            } catch (e) {
+                area.innerHTML = "Errore nella comunicazione con il Saggio AI. Riprova più tardi.";
+            }
+        }
+
+        async function generateClassReport() {
+            const area = document.getElementById('ai-report-area');
+            area.classList.remove('hidden');
+            area.innerHTML = `<div class="loading-spinner"></div> Generazione report...`;
+
+            if(registro.length === 0) {
+                area.innerHTML = "Nessun dato per generare il report.";
+                return;
+            }
+
+            const prompt = `Analizza questi risultati della classe: ${JSON.stringify(registro)}. 
+            Riassumi l'andamento generale e suggerisci al docente su quali argomenti di Analisi Matematica (Limiti, Derivate, Continuità) la classe sembra più debole.`;
+
+            try {
+                const report = await callGemini(prompt, "Sei un assistente didattico per professori di liceo. Sii professionale e sintetico.");
+                area.innerHTML = `<b>Report AI:</b><br>${report.replace(/\n/g, '<br>')}`;
+            } catch (e) {
+                area.innerHTML = "Impossibile generare il report AI.";
+            }
         }
 
         function renderRegistro() {
@@ -242,7 +366,7 @@
             } else {
                 list.innerHTML = registro.map(r => `
                     <div class="registro-item">
-                        <span><b>${r.name}</b></span>
+                        <span><b>${r.name}</b> <small>(Errori: ${r.wrongCount})</small></span>
                         <span class="grade-badge">${r.grade}</span>
                     </div>
                 `).join('');
