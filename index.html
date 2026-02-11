@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compito Mate - Analisi Matematica Completa</title>
+    <title>Liceo RPG - Analisi Matematica Completa</title>
     <!-- Firebase SDK Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -36,13 +36,13 @@
 
     <div class="container">
         <div id="header">
-            <h1 style="text-transform: uppercase; font-style: italic; font-size: 1.8rem; margin:0;">Compito Mate</h1>
+            <h1 style="text-transform: uppercase; font-style: italic; font-size: 1.8rem; margin:0;">Liceo RPG</h1>
             <p class="subtitle">Analisi Matematica - Community Edition</p>
         </div>
 
         <!-- LOGIN -->
         <div id="view-login">
-            <input id="std-name" type="text" placeholder="Nome Studente (es. Bellaragà)">
+            <input id="std-name" type="text" placeholder="Nome Studente (es. Hero24)">
             <button onclick="startQuiz()">Entra in Battaglia</button>
             <p onclick="showView('view-prof-auth')" style="cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-top:15px; color: #718096;">Accesso Cattedra</p>
         </div>
@@ -92,7 +92,7 @@
 
     <script>
         const apiKey = ""; 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'Verifica-mate-v1';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'liceo-rpg-v1';
         const firebaseConfig = JSON.parse(__firebase_config);
         
         firebase.initializeApp(firebaseConfig);
@@ -220,7 +220,7 @@
                         <span>👤 <b>${d.name}</b></span>
                         <span class="badge">${d.grade}/10</span>
                     </div>
-                `).join('') || "Nessuno studente ancora registrato.";
+                `).join('') || "Nessun eroe ancora registrato.";
             });
         }
 
