@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analisi Matematica - Esame</title>
-    <!-- Caricamento forzato degli SDK in modalità compatibile -->
+    <!-- SDK Firebase Compatibili -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -12,101 +12,112 @@
     <style>
         :root { --p: #1e293b; --s: #3b82f6; --bg: #f1f5f9; }
         body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .box { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
+        .box { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; position: relative; }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
         button { width: 100%; padding: 14px; background: var(--p); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
         button:hover { background: #000; }
         .hidden { display: none; }
-        .opt { border: 1px solid #eee; margin: 8px 0; padding: 12px; border-radius: 8px; cursor: pointer; text-align: left; transition: 0.2s; }
-        .opt:hover { background: #f8fafc; border-color: var(--s); }
-        #debug-log { font-size: 10px; color: red; margin-bottom: 10px; text-align: left; }
+        .opt { border: 1px solid #eee; margin: 8px 0; padding: 12px; border-radius: 8px; cursor: pointer; text-align: left; transition: 0.2s; font-weight: 500; }
+        .opt:hover { background: #f8fafc; border-color: var(--s); transform: translateX(5px); }
+        #debug-status { position: absolute; top: 10px; right: 10px; font-size: 9px; padding: 2px 6px; border-radius: 4px; }
+        .online { background: #dcfce7; color: #166534; }
+        .offline { background: #fee2e2; color: #991b1b; }
     </style>
 </head>
 <body>
 
 <div class="box">
-    <div id="debug-log"></div>
+    <!-- Indicatore di stato per capire se Firebase è attivo -->
+    <div id="debug-status" class="offline">DB OFF</div>
     
     <!-- SCHERMATA LOGIN -->
     <div id="v-login">
-        <h2 style="margin-top:0">Analisi Matematica I</h2>
-        <p style="color:#666; font-size:14px">Inserire i dati per iniziare la prova</p>
-        <input id="nome" type="text" placeholder="Cognome e Nome">
-        <!-- PULSANTE AGGANCIATO DIRETTAMENTE A FUNZIONE SEMPLICE -->
-        <button type="button" onclick="avviaTest()">INIZIA VALUTAZIONE</button>
-        <p onclick="vaiA('v-prof-auth')" style="font-size:12px; color:blue; cursor:pointer; margin-top:15px; text-decoration:underline;">Area Docente</p>
+        <h2 style="margin-top:0; color:var(--p)">Compito Matematica</h2>
+        <p style="color:#64748b; font-size:14px; margin-bottom:20px;">Inserire Cognome e Nome per iniziare la sessione.</p>
+        <input id="nome" type="text" placeholder="Esempio: Vaffanculo" autocomplete="off">
+        <button type="button" id="btn-start" onclick="avviaTest()">AVVIA Compito</button>
+        <p onclick="vaiA('v-prof-auth')" style="font-size:12px; color:#94a3b8; cursor:pointer; margin-top:20px; text-decoration:underline;">Accesso Docente</p>
     </div>
 
     <!-- SCHERMATA QUIZ -->
     <div id="v-quiz" class="hidden">
-        <div id="q-progresso" style="font-size:12px; font-weight:bold; color:var(--s)"></div>
-        <h3 id="q-testo" style="text-align:left; margin:15px 0"></h3>
+        <div id="q-progresso" style="font-size:11px; font-weight:800; color:var(--s); text-transform:uppercase; margin-bottom:10px; text-align:left;"></div>
+        <h3 id="q-testo" style="text-align:left; margin:0 0 20px 0; font-size:18px; line-height:1.4;"></h3>
         <div id="q-opzioni"></div>
     </div>
 
     <!-- SCHERMATA RISULTATI -->
     <div id="v-res" class="hidden">
-        <h2>Esito Prova</h2>
-        <div id="voto-finale" style="font-size:50px; font-weight:bold; margin:20px 0"></div>
-        <div id="classifica" style="text-align:left; font-size:14px; border-top:1px solid #eee; padding-top:15px">
-            <strong>Risultati Recenti:</strong>
+        <h2 style="margin-bottom:5px">Esito Prova</h2>
+        <div id="voto-finale" style="font-size:56px; font-weight:900; color:var(--p); margin:10px 0"></div>
+        <div id="classifica" style="text-align:left; font-size:14px; border-top:1px solid #eee; padding-top:15px; margin-top:15px">
+            <strong style="color:#64748b; text-transform:uppercase; font-size:11px;">Graduatoria Recente:</strong>
             <div id="lista-voti" style="margin-top:10px"></div>
         </div>
-        <button onclick="location.reload()">Esci</button>
+        <button onclick="location.reload()" style="background:#64748b">Esci e Chiudi</button>
     </div>
 
     <!-- AUTH PROF -->
     <div id="v-prof-auth" class="hidden">
-        <h3>Password Docente</h3>
-        <input id="pass-prof" type="password">
+        <h3>Registro Elettronico</h3>
+        <input id="pass-prof" type="password" placeholder="Password Docente">
         <button onclick="loginProf()">Accedi</button>
-        <button onclick="vaiA('v-login')" style="background:#666">Annulla</button>
+        <button onclick="vaiA('v-login')" style="background:#64748b">Torna indietro</button>
     </div>
 </div>
 
 <script>
-    // --- CONFIGURAZIONE E ERROR HANDLING ---
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'test-analisi-v1';
-    const log = (msg) => { document.getElementById('debug-log').innerText = "Status: " + msg; };
+    // --- GESTIONE FIREBASE RESILIENTE ---
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'analisi-id-safe';
+    let db = null;
+    let isFirebaseReady = false;
 
-    let db, auth;
-    try {
-        const cfg = JSON.parse(__firebase_config);
-        firebase.initializeApp(cfg);
-        db = firebase.firestore();
-        auth = firebase.auth();
-        auth.signInAnonymously().catch(e => log("Errore login silente"));
-    } catch (e) {
-        log("Firebase non caricato correttamente");
+    function initFirebase() {
+        const statusEl = document.getElementById('debug-status');
+        try {
+            if (typeof __firebase_config === 'undefined') throw "Config mancante";
+            const cfg = JSON.parse(__firebase_config);
+            firebase.initializeApp(cfg);
+            db = firebase.firestore();
+            
+            firebase.auth().signInAnonymously().then(() => {
+                isFirebaseReady = true;
+                statusEl.innerText = "DB ON";
+                statusEl.className = "online";
+                console.log("Firebase collegato correttamente");
+            }).catch(e => {
+                statusEl.innerText = "DB AUTH ERR";
+                console.warn("Auth fallita, i voti non saranno salvati online.");
+            });
+        } catch (e) {
+            statusEl.innerText = "DB OFF";
+            console.warn("Firebase non configurato. Funzionamento solo locale.");
+        }
     }
 
-    // --- DATI ---
+    // --- DATI ESAME ---
     const domande = [
-        { q: "Limite per x→0 di sin(x)/x?", a: ["0", "1", "∞", "Non esiste"], c: 1 },
-        { q: "Derivata di x²?", a: ["x", "2x", "2", "x²"], c: 1 },
-        { q: "La funzione |x| è derivabile in 0?", a: ["Sì", "No", "Solo a destra", "Solo a sinistra"], c: 1 },
-        { q: "Derivata di eˣ?", a: ["xeˣ⁻¹", "eˣ", "ln(x)", "1/eˣ"], c: 1 },
-        { q: "f''(x) > 0 indica che la funzione è:", a: ["Crescente", "Decrescente", "Convessa", "Concava"], c: 2 }
+        { q: "Il limite per x→0 di (eˣ-1)/x è:", a: ["0", "1", "e", "∞"], c: 1 },
+        { q: "La derivata della funzione f(x) = ln(x) è:", a: ["eˣ", "1/x", "x", "1"], c: 1 },
+        { q: "In un punto di massimo relativo, la derivata prima è:", a: ["Positiva", "Negativa", "Nulla", "Infinita"], c: 2 },
+        { q: "Qual è il limite per x→∞ di 1/x?", a: ["∞", "1", "0", "Non esiste"], c: 2 },
+        { q: "La funzione f(x) = |x| nel punto x=0 è:", a: ["Derivabile", "Continua ma non derivabile", "Discontinua", "Un flesso"], c: 1 }
     ];
 
     let indice = 0, punti = 0, utente = "";
 
-    // --- LOGICA ---
+    // --- NAVIGAZIONE ---
     function vaiA(id) {
-        document.getElementById('v-login').classList.add('hidden');
-        document.getElementById('v-quiz').classList.add('hidden');
-        document.getElementById('v-res').classList.add('hidden');
-        document.getElementById('v-prof-auth').classList.add('hidden');
+        document.querySelectorAll('.box > div:not(#debug-status)').forEach(div => div.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
     }
 
     function avviaTest() {
         utente = document.getElementById('nome').value.trim();
         if (utente.length < 3) {
-            alert("Inserisci Nome e Cognome.");
+            alert("Inserire Nome e Cognome dello studente.");
             return;
         }
-        log("Test avviato");
         indice = 0; punti = 0;
         vaiA('v-quiz');
         mostraDomanda();
@@ -114,7 +125,7 @@
 
     function mostraDomanda() {
         const d = domande[indice];
-        document.getElementById('q-progresso').innerText = `DOMANDA ${indice + 1} / ${domande.length}`;
+        document.getElementById('q-progresso').innerText = `Domanda ${indice + 1} di ${domande.length}`;
         document.getElementById('q-testo').innerText = d.q;
         const container = document.getElementById('q-opzioni');
         container.innerHTML = "";
@@ -137,18 +148,22 @@
         document.getElementById('voto-finale').innerText = voto + "/10";
         vaiA('v-res');
         
-        if (db) {
+        // Salvataggio solo se Firebase è pronto
+        if (isFirebaseReady && db) {
             const path = `artifacts/${appId}/public/data/voti`;
             db.collection(path).add({
                 nome: utente,
                 voto: parseFloat(voto),
                 data: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => caricaVoti())
-              .catch(e => log("Errore salvataggio"));
+              .catch(err => console.error("Errore salvataggio:", err));
+        } else {
+            document.getElementById('lista-voti').innerHTML = "<p style='color:orange; font-size:12px'>Nota: Connessione database assente. Il voto non è stato registrato nel cloud.</p>";
         }
     }
 
     function caricaVoti() {
+        if (!db) return;
         const path = `artifacts/${appId}/public/data/voti`;
         db.collection(path).onSnapshot(snap => {
             let html = "";
@@ -156,20 +171,26 @@
             snap.forEach(doc => dati.push(doc.data()));
             dati.sort((a,b) => b.voto - a.voto);
             dati.slice(0, 5).forEach(d => {
-                html += `<div style="display:flex; justify-content:space-between; margin-bottom:5px; border-bottom:1px solid #f9f9f9">
+                html += `<div style="display:flex; justify-content:space-between; margin-bottom:6px; border-bottom:1px solid #f8fafc; padding-bottom:2px">
                             <span>${d.nome}</span><strong>${d.voto}</strong>
                          </div>`;
             });
-            document.getElementById('lista-voti').innerHTML = html || "Nessun record.";
+            document.getElementById('lista-voti').innerHTML = html || "Nessun voto registrato.";
         });
     }
 
     function loginProf() {
-        if(document.getElementById('pass-prof').value === "Prof2026") {
+        const pass = document.getElementById('pass-prof').value;
+        if(pass === "ProfDoc2026") {
             vaiA('v-res');
             caricaVoti();
-        } else alert("Errata.");
+        } else {
+            alert("Password Errata.");
+        }
     }
+
+    // Inizializza Firebase all'avvio
+    window.onload = initFirebase;
 </script>
 
 </body>
