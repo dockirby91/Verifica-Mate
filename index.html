@@ -145,7 +145,7 @@ async function initFirebase() {
         
         // Regola 1: Percorso rigoroso per dati pubblici
         if (isFirebaseReady && db) {
-            const path = `artifacts/${appId}/public/data/voti`;
+            const path = `artifacts/${analisi-final-v3}/public/data/voti`;
             db.collection(path).add({
                 nome: utente,
                 voto: parseFloat(voto),
@@ -193,5 +193,6 @@ async function initFirebase() {
 </script>
 </body>
 </html>
+
 
 
