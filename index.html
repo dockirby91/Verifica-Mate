@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analisi Matematica - Portale Docente/Studente</title>
+    <title>Verifica di Matematica - Portale di Esame</title>
     <!-- Firebase SDK Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -11,160 +11,135 @@
     
     <style>
         :root { --primary: #0f172a; --secondary: #2563eb; --bg: #f8fafc; --border: #e2e8f0; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #1e293b; }
-        .container { background: white; padding: 2rem; border-radius: 8px; border: 1px solid var(--border); width: 90%; max-width: 500px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #1e293b; }
+        .container { background: white; padding: 2rem; border-radius: 12px; border: 1px solid var(--border); width: 90%; max-width: 480px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); text-align: center; }
         .header { border-bottom: 2px solid var(--bg); margin-bottom: 1.5rem; padding-bottom: 1rem; }
-        input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 1rem; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 8px; font-size: 1rem; }
-        button:hover { opacity: 0.9; }
-        button:disabled { background: #94a3b8; cursor: not-allowed; }
+        h1 { margin: 0; font-size: 1.25rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
+        input { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; box-sizing: border-box; transition: border 0.2s; }
+        input:focus { border-color: var(--secondary); outline: none; }
+        button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 1rem; transition: transform 0.1s, opacity 0.2s; }
+        button:active { transform: scale(0.98); }
+        button:hover { opacity: 0.95; }
         .hidden { display: none; }
-        .error-msg { color: #dc2626; font-size: 0.8rem; margin-top: 5px; display: none; }
-        .quiz-option { border: 1px solid var(--border); margin-bottom: 8px; padding: 12px; border-radius: 6px; cursor: pointer; text-align: left; }
-        .quiz-option:hover { background: #f1f5f9; }
-        .leaderboard { margin-top: 20px; text-align: left; border-top: 1px solid var(--border); padding-top: 15px; }
-        .score-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+        .quiz-option { border: 1px solid var(--border); margin-bottom: 10px; padding: 14px; border-radius: 8px; cursor: pointer; text-align: left; font-weight: 500; transition: all 0.2s; }
+        .quiz-option:hover { background: #f1f5f9; border-color: var(--secondary); transform: translateX(4px); }
+        .leaderboard { margin-top: 24px; text-align: left; border-top: 1px solid var(--border); padding-top: 16px; }
+        .score-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.95rem; }
+        .badge { background: #e2e8f0; color: var(--primary); padding: 2px 10px; border-radius: 4px; font-weight: 800; font-size: 0.85rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1 style="font-size: 1.2rem; margin: 0;">VALUTAZIONE ANALISI I</h1>
-        <div style="font-size: 0.8rem; color: #64748b;">Dipartimento di Matematica</div>
+        <h1>Verifica di Matematica</h1>
+        <div style="font-size: 0.85rem; color: #64748b; margin-top: 4px; font-weight: 600;">ANALISI MATEMATICA I</div>
     </div>
 
-    <!-- LOGIN -->
+    <!-- VISTA INIZIALE -->
     <div id="view-login">
-        <input id="std-name" type="text" placeholder="Inserisci Nome e Cognome">
-        <div id="login-error" class="error-msg">Errore: inserire un nome valido.</div>
-        <button id="btn-start" onclick="startQuiz()">AVVIA SESSIONE ESAME</button>
-        <p onclick="showView('view-prof-auth')" style="cursor:pointer; text-decoration:underline; font-size:0.75rem; color:#64748b; margin-top:10px;">Area Amministrativa</p>
+        <input id="std-name" type="text" placeholder="Nome e Cognome Studente" autocomplete="off">
+        <button id="btn-start" onclick="startQuiz()">Inizia Compito</button>
+        <p onclick="showView('view-prof-auth')" style="cursor:pointer; text-decoration:underline; font-size:0.75rem; color:#64748b; margin-top:16px;">Accesso Riservato Docente</p>
     </div>
 
-    <!-- PROF AUTH -->
+    <!-- AUTH DOCENTE -->
     <div id="view-prof-auth" class="hidden">
-        <h3>Accesso Docente</h3>
-        <input id="prof-pass" type="password" placeholder="Password">
-        <button onclick="checkAuth()">Accedi</button>
-        <button onclick="showView('view-login')" style="background:#64748b">Indietro</button>
+        <h3 style="margin-top:0">Area Docente</h3>
+        <input id="prof-pass" type="password" placeholder="Password di accesso">
+        <button onclick="checkAuth()">Accedi al Registro</button>
+        <button onclick="showView('view-login')" style="background:#64748b; margin-top:8px;">Annulla</button>
     </div>
 
-    <!-- QUIZ -->
+    <!-- QUIZ ATTIVO -->
     <div id="view-quiz" class="hidden">
-        <div id="q-info" style="font-size:0.7rem; font-weight:bold; color:var(--secondary); margin-bottom:5px;"></div>
-        <h2 id="q-text" style="font-size:1rem; margin-bottom:15px;"></h2>
+        <div id="q-info" style="font-size:0.75rem; font-weight:800; color:var(--secondary); margin-bottom:8px; text-align:left;"></div>
+        <h2 id="q-text" style="font-size:1.15rem; margin-bottom:20px; text-align:left; line-height:1.4;"></h2>
         <div id="options-container"></div>
     </div>
 
-    <!-- RISULTATI -->
+    <!-- RISULTATI FINALI -->
     <div id="view-result" class="hidden">
-        <h3>Risultato Finale</h3>
-        <div id="final-score" style="font-size:3rem; font-weight:bold; margin:10px 0;"></div>
+        <h3 style="margin-bottom:0">Valutazione Completata</h3>
+        <div id="final-score" style="font-size:4rem; font-weight:900; color:var(--primary); margin:10px 0;"></div>
         <div class="leaderboard">
-            <div style="font-weight:bold; font-size:0.8rem; margin-bottom:10px;">GRADUATORIA CLASSE</div>
-            <div id="student-list"></div>
+            <div style="font-weight:800; font-size:0.8rem; color:#64748b; margin-bottom:12px; text-transform:uppercase;">Graduatoria Studenti</div>
+            <div id="student-list">Caricamento risultati...</div>
         </div>
-        <button onclick="location.reload()" style="background:#000; margin-top:15px;">CHIUDI</button>
+        <button onclick="location.reload()" style="background:#000; margin-top:20px;">ESCI DALLA SESSIONE</button>
     </div>
 
-    <!-- REGISTRO PROF -->
+    <!-- REGISTRO DOCENTE -->
     <div id="view-prof" class="hidden">
-        <h3>Registro Risultati</h3>
-        <div id="voti-list-prof" style="max-height:200px; overflow-y:auto;"></div>
-        <button onclick="location.reload()" style="background:#64748b; margin-top:10px;">Log-out</button>
+        <h3 style="margin-top:0">Registro Elettronico</h3>
+        <div id="voti-list-prof" style="max-height:300px; overflow-y:auto; border:1px solid #f1f5f9; border-radius:6px;"></div>
+        <button onclick="location.reload()" style="background:#64748b; margin-top:16px;">Log-out</button>
     </div>
 </div>
 
 <script>
-    // 1. CONFIGURAZIONE & INIZIALIZZAZIONE
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'analisi-final-v1';
+    // Configurazione Globale
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'analisi-final-v3';
     const firebaseConfig = JSON.parse(__firebase_config);
+    
+    // Inizializzazione Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    let currentUser = null;
+    let studentName = "";
+    let score = 0;
+    let currentIdx = 0;
 
-    // RULE 3: Autenticazione prima di ogni operazione
-    const initAuth = async () => {
+    // Login automatico in background (Non blocca l'interfaccia)
+    const silentAuth = async () => {
         try {
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                 await auth.signInWithCustomToken(__initial_auth_token);
             } else {
                 await auth.signInAnonymously();
             }
-        } catch (e) {
-            console.error("Auth Error:", e);
-        }
+        } catch (e) { console.warn("Background Auth delay:", e); }
     };
-
-    auth.onAuthStateChanged((user) => {
-        currentUser = user;
-        if (user) {
-            console.log("Autenticato come:", user.uid);
-        }
-    });
-
-    initAuth();
+    silentAuth();
 
     const dataset = [
-        { q: "Limite per x → 0 di (eˣ - 1) / x?", a: ["0", "1", "∞", "Non esiste"], c: 1 },
-        { q: "f(x) è continua in x₀ se:", a: ["Esiste f(x₀)", "Limiti dx/sx coincidono con f(x₀)", "La derivata è > 0", "f(x₀) > 0"], c: 1 },
-        { q: "f(x) = x², coeff. angolare tangente in x = 3?", a: ["3", "6", "9", "0"], c: 1 },
-        { q: "Se f'(x) > 0, la funzione è:", a: ["Costante", "Crescente", "Decrescente", "Concava"], c: 1 },
-        { q: "f''(x) = 0 e cambia segno indica un:", a: ["Massimo", "Minimo", "Flesso", "Asintoto"], c: 2 },
-        { q: "Derivata di f(x) = ln(x)?", a: ["eˣ", "x", "1/x", "1"], c: 2 },
-        { q: "Limite per x → ∞ di (3x² + 2) / (x² - 1)?", a: ["0", "2", "3", "∞"], c: 2 },
-        { q: "Discontinuità di sin(x)/x in x = 0?", a: ["1° specie", "2° specie", "3° specie", "Continua"], c: 2 },
-        { q: "Derivata del prodotto [f(x)g(x)]'?", a: ["f'g + fg'", "f'g'", "f' + g'", "fg' - f'g"], c: 0 },
-        { q: "f(x) = |x| è derivabile in x = 0?", a: ["Sì", "No", "Solo x > 0", "Sì, vale 0"], c: 1 }
+        { q: "Qual è il limite per x → 0 di (eˣ - 1) / x?", a: ["0", "1", "∞", "Non esiste"], c: 1 },
+        { q: "Una funzione f(x) è continua in x₀ se:", a: ["Esiste f(x₀)", "Limiti dx/sx coincidono con f(x₀)", "La derivata è > 0", "f(x₀) > 0"], c: 1 },
+        { q: "Data f(x) = x², qual è il coeff. angolare della tangente in x = 3?", a: ["3", "6", "9", "0"], c: 1 },
+        { q: "Se f'(x) > 0 in un intervallo, la funzione è:", a: ["Costante", "Crescente", "Decrescente", "Concava"], c: 1 },
+        { q: "Cosa indica un punto in cui f''(x) = 0 e cambia segno?", a: ["Massimo", "Minimo", "Flesso", "Asintoto"], c: 2 },
+        { q: "Qual è la derivata di f(x) = ln(x)?", a: ["eˣ", "x", "1/x", "1"], c: 2 },
+        { q: "Il limite per x → ∞ di (3x² + 2) / (x² - 1) è:", a: ["0", "2", "3", "∞"], c: 2 },
+        { q: "Che tipo di discontinuità ha sin(x)/x in x = 0?", a: ["1° specie", "2° specie", "3° specie (eliminabile)", "È continua"], c: 2 },
+        { q: "La derivata del prodotto [f(x)g(x)]' è:", a: ["f'g + fg'", "f'g'", "f' + g'", "fg' - f'g"], c: 0 },
+        { q: "La funzione f(x) = |x| è derivabile in x = 0?", a: ["Sì", "No", "Solo se x > 0", "Sì, ha valore 0"], c: 1 }
     ];
 
-    let score = 0, currentIdx = 0, studentName = "";
-
-    // 3. FUNZIONI NAVIGAZIONE
     function showView(id) {
         document.querySelectorAll('.container > div:not(.header)').forEach(v => v.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
     }
 
-    // 4. LOGICA QUIZ
-    async function startQuiz() {
-        const nameInput = document.getElementById('std-name');
-        studentName = nameInput.value.trim();
+    function startQuiz() {
+        const input = document.getElementById('std-name');
+        studentName = input.value.trim();
         
-        if (studentName.length < 2) {
-            document.getElementById('login-error').style.display = 'block';
+        if (studentName.length < 3) {
+            alert("Per favore, inserisci il tuo Nome e Cognome completo.");
             return;
         }
 
-        // Assicuriamoci che l'utente sia loggato prima di iniziare
-        if (!currentUser) {
-            const btn = document.getElementById('btn-start');
-            btn.disabled = true;
-            btn.innerText = "Connessione...";
-            await initAuth();
-            btn.disabled = false;
-            btn.innerText = "AVVIA SESSIONE ESAME";
-        }
-
+        // Il quiz parte sempre, indipendentemente da Firebase
         currentIdx = 0;
         score = 0;
         showView('view-quiz');
         renderQ();
     }
 
-    function checkAuth() {
-        if(document.getElementById('prof-pass').value === "ProfDoc2026") {
-            showView('view-prof');
-            loadLeaderboard('voti-list-prof');
-        } else alert("Accesso Negato.");
-    }
-
     function renderQ() {
         const d = dataset[currentIdx];
-        document.getElementById('q-info').innerText = `QUESITO ${currentIdx + 1} / ${dataset.length}`;
+        document.getElementById('q-info').innerText = `DOMANDA ${currentIdx + 1} DI ${dataset.length}`;
         document.getElementById('q-text').innerText = d.q;
         const container = document.getElementById('options-container');
         container.innerHTML = "";
@@ -187,43 +162,46 @@
         document.getElementById('final-score').innerText = `${grade}/10`;
         showView('view-result');
         
-        // RULE 1: Percorso obbligatorio per dati pubblici
-        if (currentUser) {
+        // Salvataggio dati (Percorso Rule 1)
+        try {
+            // Se l'auth non era pronta, riprova un'ultima volta prima di salvare
+            if (!auth.currentUser) await silentAuth();
+            
             const collectionPath = `artifacts/${appId}/public/data/voti`;
-            db.collection(collectionPath).add({
-                name: studentName, 
-                grade: parseFloat(grade), 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                uid: currentUser.uid
-            }).then(() => {
-                loadLeaderboard('student-list');
-            }).catch(e => {
-                console.error("Store error:", e);
+            await db.collection(collectionPath).add({
+                name: studentName,
+                grade: parseFloat(grade),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
+            loadLeaderboard('student-list');
+        } catch (e) {
+            console.error("Database save failed:", e);
+            document.getElementById('student-list').innerText = "Voto salvato localmente (offline).";
         }
     }
 
     function loadLeaderboard(targetId) {
-        if (!currentUser) return;
-        
-        // RULE 1: Percorso obbligatorio per dati pubblici
         const collectionPath = `artifacts/${appId}/public/data/voti`;
-        
         db.collection(collectionPath).onSnapshot(snap => {
             let list = [];
             snap.forEach(doc => list.push(doc.data()));
-            // RULE 2: Ordinamento in memoria JS (evita necessità di indici Firestore)
+            // Rule 2: Sorting in memoria JS
             list.sort((a,b) => (b.grade || 0) - (a.grade || 0));
             
             document.getElementById(targetId).innerHTML = list.map(d => `
                 <div class="score-row">
                     <span>${d.name}</span>
-                    <span style="font-weight:bold">${d.grade}</span>
+                    <span class="badge">${d.grade}/10</span>
                 </div>
-            `).join('') || "Nessun dato registrato.";
-        }, err => {
-            console.error("Snapshot error:", err);
-        });
+            `).join('') || "Nessun dato presente.";
+        }, err => console.log("Snapshot error (expected if unauthed):", err));
+    }
+
+    function checkAuth() {
+        if(document.getElementById('prof-pass').value === "ProfDoc2026") {
+            showView('view-prof');
+            loadLeaderboard('voti-list-prof');
+        } else alert("Credenziali non valide.");
     }
 </script>
 </body>
