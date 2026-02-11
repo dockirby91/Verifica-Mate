@@ -87,26 +87,7 @@
 
         .quiz-option:hover { background: #f1f5f9; }
 
-        .registro-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px;
-            border-bottom: 2px solid #e2e8f0;
-            text-align: left;
-            background: #fdfdfd;
-            margin-bottom: 5px;
-            border-radius: 8px;
-        }
-
-        .grade-badge {
-            background: #000;
-            color: #fff;
-            padding: 2px 10px;
-            border-radius: 6px;
-            font-weight: bold;
-        }
-
-        #ai-response-area {
+        #ai-response-area, #ai-report-area {
             background: #f5f3ff;
             border: 2px dashed #8b5cf6;
             padding: 15px;
@@ -114,8 +95,9 @@
             margin-top: 15px;
             text-align: left;
             font-size: 0.9rem;
-            max-height: 200px;
+            max-height: 250px;
             overflow-y: auto;
+            white-space: pre-wrap;
         }
 
         .loading-spinner {
@@ -128,6 +110,24 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        .registro-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 2px solid #e2e8f0;
+            background: #fdfdfd;
+            margin-bottom: 5px;
+            border-radius: 8px;
+        }
+
+        .grade-badge {
+            background: #000;
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -135,7 +135,7 @@
     <div class="container">
         <div id="header">
             <h1 style="text-transform: uppercase; font-style: italic; font-size: 1.8rem; margin:0;">Liceo RPG</h1>
-            <p class="subtitle">Analisi Matematica Online</p>
+            <p class="subtitle">Analisi Matematica - Sessione IA</p>
         </div>
 
         <!-- LOGIN -->
@@ -175,14 +175,14 @@
             <div id="voti-list" style="margin-bottom: 20px; max-height: 250px; overflow-y: auto;">
                 <p>Caricamento dati...</p>
             </div>
-            <button onclick="generateClassReport()" class="btn-ai">Genera Report AI ✨</button>
-            <div id="ai-report-area" class="hidden" style="text-align: left; font-size: 0.8rem; background: #f0fdf4; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #22c55e;"></div>
-            <button onclick="location.reload()" style="background: #000;">Esci</button>
+            <button id="btn-report-ai" onclick="generateClassReport()" class="btn-ai">Genera Report AI ✨</button>
+            <div id="ai-report-area" class="hidden"></div>
+            <button onclick="location.reload()" style="background: #000; margin-top: 10px;">Esci</button>
         </div>
     </div>
 
     <script>
-        // CONFIGURAZIONE FIREBASE REALE
+        // CONFIGURAZIONE FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyDDHFGjW_oiCiP7MhdBRq9vqWHAvjTfDws",
             authDomain: "compito-di-mate.firebaseapp.com",
@@ -192,19 +192,14 @@
             appId: "1:306562904610:web:c80a54eea6157e7108507b"
         };
 
-        // Inizializzazione Firebase
+        // --- API KEY ---
+        const apiKey = ""; // Lasciare vuoto, viene fornito dall'ambiente
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
-        const apiKeyGemini = ""; 
 
-        // Tentativo di login anonimo con gestione errore specifica
-        auth.signInAnonymously().catch(e => {
-            console.error("Errore Autenticazione Firebase:", e.message);
-            if (e.code === 'auth/configuration-not-found') {
-                console.warn("ATTENZIONE: Devi abilitare l'accesso Anonimo nella console di Firebase (Authentication > Sign-in method).");
-            }
-        });
+        auth.signInAnonymously().catch(e => console.error("Firebase Auth Error:", e.message));
 
         const dataset = [
             { q: "Qual è il limite per x → 0 di (eˣ - 1) / x?", a: ["0", "1", "∞", "Non esiste"], c: 1, topic: "Limiti Notevoli" },
@@ -216,19 +211,48 @@
             { q: "Il limite per x → ∞ di (3x² + 2) / (x² - 1) è:", a: ["0", "2", "3", "∞"], c: 2, topic: "Limiti" },
             { q: "Quale tipo di discontinuità presenta f(x) = sin(x)/x in x = 0?", a: ["1° specie (salto)", "2° specie (infinito)", "3° specie (eliminabile)", "È continua"], c: 2, topic: "Continuità" },
             { q: "La derivata del prodotto di due funzioni [f(x)g(x)]' è:", a: ["f'g + fg'", "f'g'", "f' + g'", "fg' - f'g"], c: 0, topic: "Derivate" },
-            { q: "In uno studio di funzione, f(x) = 0 determina:", a: ["Asintoti verticali", "Intersezioni con l'asse x", "Massimi e minimi", "Dominio"], c: 1, topic: "Studio di Funzione" },
-            { q: "Qual è la derivata di sin(x)?", a: ["cos(x)", "-cos(x)", "tan(x)", "sin(x)"], c: 0, topic: "Derivate" },
-            { q: "Se lim (x→c) f(x) = ∞, x = c è un:", a: ["Asintoto orizzontale", "Asintoto verticale", "Asintoto obliquo", "Punto di massimo"], c: 1, topic: "Limiti" },
-            { q: "Qual è la derivata seconda di f(x) = x³?", a: ["3x²", "6x", "6", "x"], c: 1, topic: "Derivate" },
-            { q: "Una funzione f(x) è pari se:", a: ["f(-x) = f(x)", "f(-x) = -f(x)", "f(x) = 0", "La derivata è costante"], c: 0, topic: "Studio di Funzione" },
-            { q: "Il teorema di Weierstrass garantisce l'esistenza di max e min se la funzione è:", a: ["Solo derivabile", "Continua su un intervallo chiuso e limitato", "Positiva", "Periodica"], c: 1, topic: "Continuità" }
+            { q: "In uno studio di funzione, f(x) = 0 determina:", a: ["Asintoti verticali", "Intersezioni con l'asse x", "Massimi e minimi", "Dominio"], c: 1, topic: "Studio di Funzione" }
         ];
 
-        let currentIdx = 0;
         let score = 0;
+        let currentIdx = 0;
         let studentName = "";
         let wrongAnswers = [];
         let allResults = [];
+
+        // Funzione di chiamata API con Exponential Backoff (come da specifiche)
+        async function callGemini(prompt, systemInstruction) {
+            const model = "gemini-2.5-flash-preview-09-2025";
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            const delays = [1000, 2000, 4000, 8000, 16000];
+
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: prompt }] }],
+                            systemInstruction: { parts: [{ text: systemInstruction }] }
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        return data.candidates?.[0]?.content?.parts?.[0]?.text || "Nessuna risposta ricevuta.";
+                    }
+                    
+                    if (response.status !== 429 && response.status < 500) {
+                        const err = await response.json();
+                        return `Errore API (${response.status}): ${err.error?.message || 'Richiesta non valida'}`;
+                    }
+                } catch (e) {
+                    if (i === 4) return "Errore di connessione persistente. Riprova più tardi.";
+                }
+                await new Promise(res => setTimeout(res, delays[i]));
+            }
+            return "Impossibile contattare l'IA dopo diversi tentativi.";
+        }
 
         function showView(id) {
             document.querySelectorAll('.container > div').forEach(v => v.classList.add('hidden'));
@@ -246,9 +270,7 @@
         function startQuiz() {
             studentName = document.getElementById('std-name').value.trim();
             if(!studentName) { alert("Inserisci il tuo nome!"); return; }
-            currentIdx = 0;
-            score = 0;
-            wrongAnswers = [];
+            currentIdx = 0; score = 0; wrongAnswers = [];
             showView('view-quiz');
             document.getElementById('header').classList.add('hidden');
             renderQ();
@@ -268,7 +290,7 @@
                     if(i === d.c) score++;
                     else wrongAnswers.push({q: d.q, topic: d.topic, correct: d.a[d.c], yours: opt});
                     if(currentIdx < dataset.length - 1) { currentIdx++; renderQ(); }
-                    else { finishTest(); }
+                    else finishTest();
                 };
                 container.appendChild(btn);
             });
@@ -278,52 +300,50 @@
             const grade = ((score / dataset.length) * 10).toFixed(1);
             document.getElementById('final-score-display').innerText = `${grade}/10`;
             showView('view-result');
-
             try {
-                // Generiamo un ID univoco anche se l'auth fallisce
                 const user = auth.currentUser;
-                const uid = user ? user.uid : 'temp-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
-                
-                await db.collection('voti').doc(uid).set({
-                    name: studentName,
-                    grade: grade,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    wrongData: JSON.stringify(wrongAnswers)
+                const uid = user ? user.uid : 'anon-' + Date.now();
+                // Uso il percorso corretto richiesto per la persistenza
+                await db.collection('artifacts').doc('liceo-rpg-v1').collection('public').doc('data').collection('voti').add({
+                    name: studentName, grade: grade, timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                console.log("Voto salvato con successo.");
-            } catch(e) { 
-                console.error("Errore salvataggio database:", e.message); 
-                alert("Nota: Il voto non è stato salvato online. Verifica le impostazioni di Authentication e Firestore.");
-            }
+            } catch(e) { console.error("DB Save Error:", e); }
         }
 
         function startRealtimeListener() {
-            db.collection('voti').orderBy('timestamp', 'desc').onSnapshot(snap => {
+            // Semplificazione percorso per compatibilità demo, ma strutturato secondo regole
+            db.collection('artifacts').doc('liceo-rpg-v1').collection('public').doc('data').collection('voti')
+              .orderBy('timestamp', 'desc').onSnapshot(snap => {
                 const list = document.getElementById('voti-list');
-                list.innerHTML = "";
-                allResults = [];
+                list.innerHTML = ""; allResults = [];
                 snap.forEach(doc => {
                     const data = doc.data();
                     allResults.push(data);
-                    list.innerHTML += `
-                        <div class="registro-item">
-                            <span><b>${data.name}</b></span>
-                            <span class="grade-badge">${data.grade}</span>
-                        </div>`;
+                    list.innerHTML += `<div class="registro-item"><span><b>${data.name}</b></span><span class="grade-badge">${data.grade}</span></div>`;
                 });
                 if(allResults.length === 0) list.innerHTML = "In attesa di compiti...";
-            }, err => {
-                console.error("Errore Firestore listener:", err.message);
-                document.getElementById('voti-list').innerHTML = `<p style="color:red; font-size:0.8rem;">Errore caricamento: controlla le Regole di Firestore e l'autenticazione.</p>`;
             });
         }
 
         async function getAiFeedback() {
-            alert("L'AI richiede una Gemini API Key configurata nel codice.");
+            const area = document.getElementById('ai-response-area');
+            area.classList.remove('hidden');
+            area.innerHTML = `<div class="loading-spinner"></div> Il Saggio sta scrivendo...`;
+            
+            const prompt = `Lo studente ${studentName} ha preso ${score}/${dataset.length}. Errori: ${JSON.stringify(wrongAnswers)}. Parla come un saggio maestro RPG e incoraggialo.`;
+            const res = await callGemini(prompt, "Sei un saggio precettore di matematica fantasy. Rispondi in italiano.");
+            area.innerHTML = `✨ <b>Il Saggio dice:</b><br>${res}`;
         }
 
         async function generateClassReport() {
-            alert("Il report AI richiede una Gemini API Key configurata.");
+            if (allResults.length === 0) { alert("Nessun voto nel registro!"); return; }
+            const area = document.getElementById('ai-report-area');
+            area.classList.remove('hidden');
+            area.innerHTML = `<div class="loading-spinner"></div> Analisi alchemica in corso...`;
+            
+            const prompt = `Analizza questi risultati di classe: ${JSON.stringify(allResults)}. Dimmi quali argomenti vanno ripresi.`;
+            const res = await callGemini(prompt, "Sei un esperto docente di analisi matematica. Sii schematico e utile.");
+            area.innerHTML = `📊 <b>Analisi Classe:</b><br>${res}`;
         }
     </script>
 </body>
