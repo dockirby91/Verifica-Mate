@@ -3,35 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liceo RPG - Test Analisi AI</title>
+    <title>Liceo RPG - Registro Cloud AI</title>
+    <!-- Firebase SDK Compat -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
+    
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8fafc;
+            background-color: #f0f4f8;
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            color: #1e293b;
+            color: #2d3748;
         }
 
         .container {
             background: white;
             padding: 2.5rem;
             border-radius: 20px;
-            box-shadow: 8px 8px 0px #000;
+            box-shadow: 10px 10px 0px #000;
             border: 3px solid #000;
             width: 100%;
             max-width: 550px;
             text-align: center;
-        }
-
-        h1 {
-            text-transform: uppercase;
-            font-style: italic;
-            margin-bottom: 0.2rem;
-            font-size: 1.8rem;
         }
 
         .subtitle {
@@ -73,11 +71,7 @@
             box-shadow: 1px 1px 0px #000;
         }
 
-        .btn-ai {
-            background-color: #8b5cf6;
-            margin-top: 10px;
-        }
-
+        .btn-ai { background-color: #8b5cf6; }
         .hidden { display: none; }
 
         .quiz-option {
@@ -89,7 +83,6 @@
             cursor: pointer;
             font-weight: 600;
             text-align: left;
-            transition: background 0.2s;
         }
 
         .quiz-option:hover { background: #f1f5f9; }
@@ -97,9 +90,12 @@
         .registro-item {
             display: flex;
             justify-content: space-between;
-            padding: 10px;
+            padding: 12px;
             border-bottom: 2px solid #e2e8f0;
             text-align: left;
+            background: #fdfdfd;
+            margin-bottom: 5px;
+            border-radius: 8px;
         }
 
         .grade-badge {
@@ -108,14 +104,6 @@
             padding: 2px 10px;
             border-radius: 6px;
             font-weight: bold;
-        }
-
-        .back-btn {
-            margin-top: 20px;
-            font-size: 0.8rem;
-            color: #64748b;
-            cursor: pointer;
-            text-decoration: underline;
         }
 
         #ai-response-area {
@@ -137,34 +125,32 @@
             border: 3px solid rgba(139, 92, 246, 0.3);
             border-radius: 50%;
             border-top-color: #8b5cf6;
-            animation: spin 1s ease-in-out infinite;
+            animation: spin 1s linear infinite;
         }
-
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- HEADER -->
         <div id="header">
-            <h1>Liceo RPG</h1>
-            <p class="subtitle">Analisi Matematica ✨ AI Powered</p>
+            <h1 style="text-transform: uppercase; font-style: italic; font-size: 1.8rem; margin:0;">Liceo RPG</h1>
+            <p class="subtitle">Analisi Matematica - Registro Cloud</p>
         </div>
 
         <!-- LOGIN -->
         <div id="view-login">
-            <input id="std-name" type="text" placeholder="Inserisci il tuo nome">
-            <button onclick="startQuiz()">Inizia Esame</button>
-            <div class="back-btn" onclick="showProfAuth()">Area Docente</div>
+            <input id="std-name" type="text" placeholder="Nome Studente">
+            <button onclick="startQuiz()">Entra in Aula</button>
+            <p onclick="showView('view-prof-auth')" style="cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-top:15px;">Accesso Docente</p>
         </div>
 
         <!-- AUTH DOCENTE -->
         <div id="view-prof-auth" class="hidden">
-            <h3>ACCESSO REGISTRO</h3>
-            <input id="prof-pass" type="password" placeholder="Password Docente">
-            <button onclick="checkAuth()">Accedi</button>
-            <div class="back-btn" onclick="showView('view-login')">Indietro</div>
+            <h3>LOG-IN DOCENTE</h3>
+            <input id="prof-pass" type="password" placeholder="Password">
+            <button onclick="checkAuth()">Accedi al Registro</button>
+            <p onclick="showView('view-login')" style="cursor:pointer; text-decoration:underline; font-size:0.8rem;">Indietro</p>
         </div>
 
         <!-- QUIZ -->
@@ -174,27 +160,38 @@
             <div id="options-container"></div>
         </div>
 
-        <!-- RISULTATO STUDENTE -->
+        <!-- RISULTATO -->
         <div id="view-result" class="hidden">
-            <h2 id="result-title">Test Completato!</h2>
+            <h2>Test Completato!</h2>
             <div id="final-score-display" style="font-size: 3rem; font-weight: 900; margin: 1rem 0;"></div>
-            <button onclick="getAiFeedback()" class="btn-ai">Spiegami gli errori ✨</button>
+            <button onclick="getAiFeedback()" class="btn-ai">Chiedi al Saggio AI ✨</button>
             <div id="ai-response-area" class="hidden"></div>
-            <button onclick="showView('view-login')" style="background: #000; margin-top: 10px;">Torna alla Home</button>
+            <button onclick="location.reload()" style="background: #000; margin-top: 10px;">Torna alla Home</button>
         </div>
 
         <!-- REGISTRO -->
         <div id="view-prof" class="hidden">
-            <h2 style="text-transform: uppercase;">Registro Sessione</h2>
-            <div id="voti-list" style="margin-bottom: 20px; max-height: 250px; overflow-y: auto;"></div>
-            <button onclick="generateClassReport()" class="btn-ai">Report Classe ✨</button>
+            <h2 style="text-transform: uppercase;">Registro Voti Online</h2>
+            <div id="voti-list" style="margin-bottom: 20px; max-height: 250px; overflow-y: auto;">
+                <p>Caricamento dati...</p>
+            </div>
+            <button onclick="generateClassReport()" class="btn-ai">Genera Report AI ✨</button>
             <div id="ai-report-area" class="hidden" style="text-align: left; font-size: 0.8rem; background: #f0fdf4; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #22c55e;"></div>
-            <button onclick="showView('view-login')" style="background: #000;">Esci</button>
+            <button onclick="location.reload()" style="background: #000;">Esci</button>
         </div>
     </div>
 
     <script>
-        const apiKey = ""; // Gestito dall'ambiente
+        // CONFIGURAZIONE FIREBASE E GEMINI
+        const firebaseConfig = JSON.parse(__firebase_config);
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'math-rpg-v1';
+        const apiKey = ""; // API Gemini
+
+        // DATABASE PATH: /artifacts/{appId}/public/data/results
+        const resultsRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('results');
 
         const dataset = [
             { q: "Qual è il limite per x → 0 di (eˣ - 1) / x?", a: ["0", "1", "∞", "Non esiste"], c: 1, topic: "Limiti Notevoli" },
@@ -217,51 +214,38 @@
         let currentIdx = 0;
         let score = 0;
         let studentName = "";
-        let registro = [];
         let wrongAnswers = [];
+        let allResults = [];
 
-        async function callGemini(prompt, systemInstruction = "") {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-            const payload = {
-                contents: [{ parts: [{ text: prompt }] }],
-                systemInstruction: { parts: [{ text: systemInstruction }] }
-            };
-
-            let retries = 0;
-            const delays = [1000, 2000, 4000, 8000, 16000];
-
-            while (retries < 5) {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        body: JSON.stringify(payload)
-                    });
-                    const result = await response.json();
-                    return result.candidates?.[0]?.content?.parts?.[0]?.text;
-                } catch (e) {
-                    retries++;
-                    if (retries === 5) throw e;
-                    await new Promise(r => setTimeout(r, delays[retries-1]));
-                }
+        // INIT AUTH
+        (async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await auth.signInWithCustomToken(__initial_auth_token);
+            } else {
+                await auth.signInAnonymously();
             }
+        })();
+
+        // GEMINI API
+        async function callGemini(prompt, system) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: system }] } };
+            const response = await fetch(url, { method: 'POST', body: JSON.stringify(payload) });
+            const data = await response.json();
+            return data.candidates?.[0]?.content?.parts?.[0]?.text;
         }
 
         function showView(id) {
             document.querySelectorAll('.container > div').forEach(v => v.classList.add('hidden'));
             document.getElementById('header').classList.remove('hidden');
             document.getElementById(id).classList.remove('hidden');
-            if(id === 'view-login') document.getElementById('ai-response-area').classList.add('hidden');
         }
-
-        function showProfAuth() { showView('view-prof-auth'); document.getElementById('prof-pass').value = ""; }
 
         function checkAuth() {
             if(document.getElementById('prof-pass').value === "ProfDoc2026") {
                 showView('view-prof');
-                renderRegistro();
-            } else {
-                alert("Password errata!");
-            }
+                startRealtimeListener();
+            } else { alert("Password errata!"); }
         }
 
         function startQuiz() {
@@ -286,91 +270,68 @@
                 btn.className = "quiz-option";
                 btn.innerText = opt;
                 btn.onclick = () => {
-                    if(i === d.c) {
-                        score++;
-                    } else {
-                        wrongAnswers.push({
-                            question: d.q,
-                            yourAnswer: opt,
-                            correctAnswer: d.a[d.c],
-                            topic: d.topic
-                        });
-                    }
-                    if(currentIdx < dataset.length - 1) {
-                        currentIdx++;
-                        renderQ();
-                    } else {
-                        endQuiz();
-                    }
+                    if(i === d.c) score++;
+                    else wrongAnswers.push({q: d.q, topic: d.topic, correct: d.a[d.c], yours: opt});
+                    if(currentIdx < dataset.length - 1) { currentIdx++; renderQ(); }
+                    else { finishTest(); }
                 };
                 container.appendChild(btn);
             });
         }
 
-        function endQuiz() {
-            const finalGrade = ((score / dataset.length) * 10).toFixed(1);
-            document.getElementById('final-score-display').innerText = `${finalGrade}/10`;
-            registro.push({ name: studentName, grade: finalGrade, wrongCount: wrongAnswers.length });
+        async function finishTest() {
+            const grade = ((score / dataset.length) * 10).toFixed(1);
+            document.getElementById('final-score-display').innerText = `${grade}/10`;
             showView('view-result');
+
+            // SALVATAGGIO CLOUD
+            const user = auth.currentUser;
+            if (user) {
+                await resultsRef.doc(user.uid).set({
+                    name: studentName,
+                    grade: grade,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    wrongData: JSON.stringify(wrongAnswers)
+                });
+            }
         }
 
         async function getAiFeedback() {
             const area = document.getElementById('ai-response-area');
             area.classList.remove('hidden');
-            area.innerHTML = `<div class="loading-spinner"></div> Sto analizzando i tuoi errori...`;
-
-            if(wrongAnswers.length === 0) {
-                area.innerHTML = "✨ <b>Perfetto!</b> Non hai commesso errori. Sei pronto per l'esame di Stato!";
-                return;
-            }
-
-            const prompt = `Lo studente ${studentName} ha ottenuto ${score}/${dataset.length}. 
-            Errori commessi: ${JSON.stringify(wrongAnswers)}. 
-            Spiega brevemente perché le risposte erano sbagliate e dai un consiglio motivazionale in stile RPG (come se fossi un saggio mago della matematica).`;
+            area.innerHTML = `<div class="loading-spinner"></div> Analisi magica in corso...`;
             
-            const system = "Sei un tutor di Analisi Matematica esperto. Rispondi in italiano in modo chiaro, conciso e incoraggiante.";
+            const prompt = `Lo studente ${studentName} ha preso ${score}/${dataset.length}. Errori: ${JSON.stringify(wrongAnswers)}. Spiega brevemente gli errori e incoraggia in stile fantasy/RPG.`;
+            const feedback = await callGemini(prompt, "Sei un saggio precettore di analisi matematica. Parla in italiano.");
+            area.innerHTML = `✨ <b>Il Saggio dice:</b><br>${feedback}`;
+        }
 
-            try {
-                const feedback = await callGemini(prompt, system);
-                area.innerHTML = `✨ <b>Il Saggio dice:</b><br>${feedback.replace(/\n/g, '<br>')}`;
-            } catch (e) {
-                area.innerHTML = "Errore nella comunicazione con il Saggio AI. Riprova più tardi.";
-            }
+        function startRealtimeListener() {
+            resultsRef.onSnapshot(snap => {
+                const list = document.getElementById('voti-list');
+                list.innerHTML = "";
+                allResults = [];
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    allResults.push(data);
+                    list.innerHTML += `
+                        <div class="registro-item">
+                            <span><b>${data.name}</b></span>
+                            <span class="grade-badge">${data.grade}</span>
+                        </div>`;
+                });
+                if(allResults.length === 0) list.innerHTML = "In attesa di studenti...";
+            });
         }
 
         async function generateClassReport() {
             const area = document.getElementById('ai-report-area');
             area.classList.remove('hidden');
-            area.innerHTML = `<div class="loading-spinner"></div> Generazione report...`;
-
-            if(registro.length === 0) {
-                area.innerHTML = "Nessun dato per generare il report.";
-                return;
-            }
-
-            const prompt = `Analizza questi risultati della classe: ${JSON.stringify(registro)}. 
-            Riassumi l'andamento generale e suggerisci al docente su quali argomenti di Analisi Matematica (Limiti, Derivate, Continuità) la classe sembra più debole.`;
-
-            try {
-                const report = await callGemini(prompt, "Sei un assistente didattico per professori di liceo. Sii professionale e sintetico.");
-                area.innerHTML = `<b>Report AI:</b><br>${report.replace(/\n/g, '<br>')}`;
-            } catch (e) {
-                area.innerHTML = "Impossibile generare il report AI.";
-            }
-        }
-
-        function renderRegistro() {
-            const list = document.getElementById('voti-list');
-            if(registro.length === 0) {
-                list.innerHTML = "<p style='color:#999'>Nessun voto in memoria.</p>";
-            } else {
-                list.innerHTML = registro.map(r => `
-                    <div class="registro-item">
-                        <span><b>${r.name}</b> <small>(Errori: ${r.wrongCount})</small></span>
-                        <span class="grade-badge">${r.grade}</span>
-                    </div>
-                `).join('');
-            }
+            area.innerHTML = `<div class="loading-spinner"></div> Studio della classe in corso...`;
+            
+            const prompt = `Analizza questi voti della classe: ${JSON.stringify(allResults)}. Dimmi quali sono gli argomenti dove la classe zoppica e come il prof può aiutarli.`;
+            const report = await callGemini(prompt, "Sei un consulente didattico esperto. Sii sintetico e utile.");
+            area.innerHTML = `<b>Report Strategico AI:</b><br>${report}`;
         }
     </script>
 </body>
