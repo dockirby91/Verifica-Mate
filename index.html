@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analisi Matematica - Portale Valutazione</title>
-    <!-- Firebase SDK Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -28,6 +27,7 @@
         
         button { width: 100%; padding: 0.75rem; background-color: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-bottom: 0.75rem; font-size: 1rem; }
         button:hover { background-color: #334155; }
+        button:disabled { background-color: #94a3b8; cursor: not-allowed; }
         .btn-secondary { background-color: var(--secondary); }
         .btn-secondary:hover { background-color: #2563eb; }
         
@@ -43,7 +43,7 @@
         .score-row { display: flex; justify-content: space-between; padding: 0.75rem; border-bottom: 1px solid #f1f5f9; font-size: 0.95rem; }
         .badge { background: #e2e8f0; color: #1e293b; padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: 700; font-size: 0.85rem; }
         
-        .loading { color: #64748b; font-size: 0.875rem; font-style: italic; }
+        .loading-text { font-size: 0.8rem; color: var(--secondary); margin-top: -0.5rem; margin-bottom: 1rem; display: none; }
     </style>
 </head>
 <body>
@@ -57,7 +57,8 @@
         <!-- ACCESSO STUDENTE -->
         <div id="view-login">
             <input id="std-name" type="text" placeholder="Nome e Cognome Studente">
-            <button onclick="startQuiz()">Avvia Sessione d'Esame</button>
+            <div id="auth-status" class="loading-text">Inizializzazione sessione sicura...</div>
+            <button id="btn-start" onclick="startQuiz()">Avvia Sessione d'Esame</button>
             <p onclick="showView('view-prof-auth')" style="cursor:pointer; text-decoration:underline; font-size:0.8rem; text-align:center; color: #64748b; margin-top: 1rem;">Accesso Amministratore / Docente</p>
         </div>
 
@@ -87,7 +88,7 @@
             <div class="leaderboard">
                 <div class="leaderboard-title">Bacheca Risultati Correnti</div>
                 <div id="student-leaderboard-list" style="max-height: 200px; overflow-y: auto;">
-                    <p class="loading">Sincronizzazione dati in corso...</p>
+                    <p>Sincronizzazione dati in corso...</p>
                 </div>
             </div>
 
@@ -113,20 +114,26 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // Autenticazione silente obbligatoria per Firestore (Regola 3)
-        let isAuthenticating = false;
-        const initAuth = async () => {
-            if (isAuthenticating) return;
-            isAuthenticating = true;
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await auth.signInWithCustomToken(__initial_auth_token);
-                } else {
-                    await auth.signInAnonymously();
-                }
-            } catch (e) { console.error("Errore Auth:", e); }
-            isAuthenticating = false;
+        let authReady = false;
+
+        // Gestione autenticazione con promessa per evitare blocchi
+        const initAuth = () => {
+            return new Promise((resolve) => {
+                auth.onAuthStateChanged((user) => {
+                    if (user) {
+                        authReady = true;
+                        resolve(user);
+                    } else {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            auth.signInWithCustomToken(__initial_auth_token).catch(console.error);
+                        } else {
+                            auth.signInAnonymously().catch(console.error);
+                        }
+                    }
+                });
+            });
         };
+
         initAuth();
 
         const dataset = [
@@ -174,7 +181,7 @@
             document.getElementById(id).classList.remove('hidden');
         }
 
-        async function checkAuth() {
+        function checkAuth() {
             if(document.getElementById('prof-pass').value === "ProfDoc2026") {
                 showView('view-prof');
                 loadLeaderboard('voti-list-prof');
@@ -182,11 +189,20 @@
         }
 
         async function startQuiz() {
-            studentName = document.getElementById('std-name').value.trim();
-            if(!studentName) return alert("Inserire nome e cognome per procedere.");
+            const input = document.getElementById('std-name');
+            const btn = document.getElementById('btn-start');
+            const status = document.getElementById('auth-status');
             
-            // Assicuriamoci che l'auth sia pronta
-            if (!auth.currentUser) await initAuth();
+            studentName = input.value.trim();
+            if(!studentName) return alert("Inserire nome e cognome per procedere.");
+
+            if (!authReady) {
+                btn.disabled = true;
+                status.style.display = "block";
+                await initAuth();
+                btn.disabled = false;
+                status.style.display = "none";
+            }
             
             currentIdx = 0; score = 0; wrongAnswers = [];
             showView('view-quiz');
@@ -220,7 +236,6 @@
             
             if (auth.currentUser) {
                 try {
-                    // Percorso obbligatorio per Firestore (Regola 1)
                     await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('voti').add({
                         name: studentName,
                         grade: parseFloat(grade),
@@ -247,13 +262,15 @@
                         <span class="badge">${d.grade}/10</span>
                     </div>
                 `).join('') || "<p style='font-size:0.8rem'>Nessun dato registrato.</p>";
+            }, err => {
+                console.error("Errore snapshot:", err);
             });
         }
 
         async function getAiFeedback() {
             const area = document.getElementById('ai-response-area');
             area.classList.remove('hidden');
-            area.innerHTML = `<span class="loading">Elaborazione feedback formativo in corso...</span>`;
+            area.innerHTML = `<em>Elaborazione feedback formativo in corso...</em>`;
             const prompt = `Lo studente ${studentName} ha ottenuto un punteggio di ${score}/10. Errori commessi: ${JSON.stringify(wrongAnswers)}. Fornisci un feedback pedagogico e professionale su come migliorare.`;
             const res = await callGemini(prompt, "Sei un docente universitario di Analisi Matematica. Fornisci feedback costruttivi e professionali.");
             area.innerHTML = `<strong>Feedback del Docente (IA):</strong><br>${res}`;
@@ -262,7 +279,7 @@
         async function generateClassReport() {
             const area = document.getElementById('ai-report-area');
             area.classList.remove('hidden');
-            area.innerHTML = `<span class="loading">Generazione analisi statistica della classe...</span>`;
+            area.innerHTML = `<em>Generazione analisi statistica della classe...</em>`;
             const prompt = `Dati classe: ${JSON.stringify(window.currentClassData)}. Analizza l'andamento generale e suggerisci quali argomenti richiedono una lezione di recupero.`;
             const res = await callGemini(prompt, "Sei un coordinatore didattico esperto in analisi statistica dei risultati accademici.");
             area.innerHTML = `<strong>Rapporto di Rendimento Classe:</strong><br>${res}`;
