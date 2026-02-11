@@ -3,122 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liceo RPG - Analisi Matematica Completa</title>
+    <title>Analisi Matematica - Portale Valutazione</title>
     <!-- Firebase SDK Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f4f8; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #2d3748; }
-        .container { background: white; padding: 2.5rem; border-radius: 20px; box-shadow: 10px 10px 0px #000; border: 3px solid #000; width: 95%; max-width: 600px; text-align: center; }
-        .subtitle { color: #4f46e5; font-weight: bold; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2rem; }
-        input { width: 100%; padding: 14px; margin-bottom: 1rem; border: 3px solid #000; border-radius: 10px; font-size: 1rem; box-sizing: border-box; }
-        button { width: 100%; padding: 14px; background-color: #4f46e5; color: white; border: 3px solid #000; border-radius: 10px; font-weight: bold; cursor: pointer; box-shadow: 4px 4px 0px #000; text-transform: uppercase; transition: all 0.1s; margin-bottom: 0.5rem; }
-        button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #000; }
-        .btn-ai { background-color: #8b5cf6; }
+        :root {
+            --primary: #1e293b;
+            --secondary: #3b82f6;
+            --accent: #6366f1;
+            --bg: #f8fafc;
+            --text: #0f172a;
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background-color: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text); }
+        .container { background: white; padding: 2.5rem; border-radius: 12px; border: 1px solid #e2e8f0; width: 95%; max-width: 600px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .header { border-bottom: 2px solid #f1f5f9; margin-bottom: 2rem; padding-bottom: 1rem; text-align: left; }
+        h1 { margin: 0; font-size: 1.5rem; color: var(--primary); font-weight: 700; letter-spacing: -0.025em; }
+        .subtitle { font-size: 0.875rem; color: #64748b; margin-top: 0.25rem; }
+        
+        input { width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; box-sizing: border-box; }
+        input:focus { outline: 2px solid var(--secondary); border-color: transparent; }
+        
+        button { width: 100%; padding: 0.75rem; background-color: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-bottom: 0.75rem; font-size: 1rem; }
+        button:hover { background-color: #334155; }
+        .btn-secondary { background-color: var(--secondary); }
+        .btn-secondary:hover { background-color: #2563eb; }
+        
         .hidden { display: none; }
-        .quiz-option { background: #fff; margin-bottom: 10px; padding: 15px; border: 3px solid #000; border-radius: 12px; cursor: pointer; font-weight: 600; text-align: left; }
-        .quiz-option:hover { background: #f1f5f9; }
-        #ai-response-area, #ai-report-area { background: #f5f3ff; border: 2px dashed #8b5cf6; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: left; font-size: 0.9rem; max-height: 250px; overflow-y: auto; white-space: pre-wrap; }
         
-        /* Leaderboard Style */
-        .leaderboard { margin-top: 2rem; border-top: 3px solid #000; padding-top: 1rem; text-align: left; }
-        .leaderboard-title { font-weight: 900; text-transform: uppercase; font-size: 0.9rem; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
-        .score-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 2px solid #e2e8f0; font-size: 0.95rem; background: #fff; margin-bottom: 4px; border-radius: 8px; border: 1px solid #eee; }
-        .badge { background: #000; color: white; padding: 2px 10px; border-radius: 6px; font-weight: bold; }
+        .quiz-option { border: 1px solid #e2e8f0; margin-bottom: 0.75rem; padding: 1rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-align: left; font-weight: 500; }
+        .quiz-option:hover { background-color: #f1f5f9; border-color: #cbd5e1; }
         
-        .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(139, 92, 246, 0.3); border-radius: 50%; border-top-color: #8b5cf6; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        #ai-response-area, #ai-report-area { background: #f1f5f9; border-left: 4px solid var(--accent); padding: 1rem; border-radius: 4px; margin-top: 1.5rem; text-align: left; font-size: 0.93rem; line-height: 1.6; white-space: pre-wrap; }
+
+        .leaderboard { margin-top: 2rem; text-align: left; }
+        .leaderboard-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 1rem; color: #475569; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; }
+        .score-row { display: flex; justify-content: space-between; padding: 0.75rem; border-bottom: 1px solid #f1f5f9; font-size: 0.95rem; }
+        .badge { background: #e2e8f0; color: #1e293b; padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: 700; font-size: 0.85rem; }
+        
+        .loading { color: #64748b; font-size: 0.875rem; font-style: italic; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div id="header">
-            <h1 style="text-transform: uppercase; font-style: italic; font-size: 1.8rem; margin:0;">Liceo RPG</h1>
-            <p class="subtitle">Analisi Matematica - Community Edition</p>
+        <div class="header">
+            <h1>Piattaforma di Valutazione Digitale</h1>
+            <div class="subtitle">Dipartimento di Matematica - Analisi I</div>
         </div>
 
-        <!-- LOGIN -->
+        <!-- ACCESSO STUDENTE -->
         <div id="view-login">
-            <input id="std-name" type="text" placeholder="Nome Studente (es. Hero24)">
-            <button onclick="startQuiz()">Entra in Battaglia</button>
-            <p onclick="showView('view-prof-auth')" style="cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-top:15px; color: #718096;">Accesso Cattedra</p>
+            <input id="std-name" type="text" placeholder="Nome e Cognome Studente">
+            <button onclick="startQuiz()">Avvia Sessione d'Esame</button>
+            <p onclick="showView('view-prof-auth')" style="cursor:pointer; text-decoration:underline; font-size:0.8rem; text-align:center; color: #64748b; margin-top: 1rem;">Accesso Amministratore / Docente</p>
         </div>
 
-        <!-- AUTH DOCENTE -->
+        <!-- AUTENTICAZIONE DOCENTE -->
         <div id="view-prof-auth" class="hidden">
-            <h3>LOG-IN DOCENTE</h3>
-            <input id="prof-pass" type="password" placeholder="Password">
-            <button onclick="checkAuth()">Apri Registro</button>
-            <p onclick="showView('view-login')" style="cursor:pointer; text-decoration:underline; font-size:0.8rem;">Indietro</p>
+            <h3 style="margin-top:0">Autenticazione Personale Docente</h3>
+            <input id="prof-pass" type="password" placeholder="Password di accesso">
+            <button onclick="checkAuth()">Accedi al Registro</button>
+            <button onclick="showView('view-login')" style="background:#64748b">Annulla</button>
         </div>
 
-        <!-- QUIZ -->
+        <!-- SESSIONE TEST -->
         <div id="view-quiz" class="hidden">
-            <p id="q-info" style="font-size: 0.75rem; font-weight: bold; color: #4f46e5;"></p>
-            <h2 id="q-text" style="font-size: 1.2rem; margin-bottom: 1.5rem; line-height: 1.4;"></h2>
+            <div id="q-info" style="font-size: 0.8rem; font-weight: 600; color: var(--secondary); margin-bottom: 0.5rem;"></div>
+            <h2 id="q-text" style="font-size: 1.15rem; margin-bottom: 1.5rem; line-height: 1.5;"></h2>
             <div id="options-container"></div>
         </div>
 
-        <!-- RISULTATO E BACHECA -->
+        <!-- RISULTATI E BACHECA -->
         <div id="view-result" class="hidden">
-            <h2>Missione Compiuta!</h2>
-            <div id="final-score-display" style="font-size: 3.5rem; font-weight: 900; margin: 0.5rem 0;"></div>
+            <h2 style="margin-top:0">Riepilogo Valutazione</h2>
+            <div id="final-score-display" style="font-size: 3rem; font-weight: 800; margin: 1rem 0; color: var(--primary);"></div>
             
-            <button onclick="getAiFeedback()" class="btn-ai">Ascolta il Saggio AI ✨</button>
+            <button onclick="getAiFeedback()" class="btn-secondary">Genera Feedback Formativo IA ✨</button>
             <div id="ai-response-area" class="hidden"></div>
 
             <div class="leaderboard">
-                <div class="leaderboard-title">📜 Pergamena dei Risultati (Classe)</div>
-                <div id="student-leaderboard-list" style="max-height: 300px; overflow-y: auto;">
-                    <p style="font-size: 0.8rem; color: #718096;">Caricamento bacheca...</p>
+                <div class="leaderboard-title">Bacheca Risultati Correnti</div>
+                <div id="student-leaderboard-list" style="max-height: 200px; overflow-y: auto;">
+                    <p class="loading">Sincronizzazione dati in corso...</p>
                 </div>
             </div>
 
-            <button onclick="location.reload()" style="background: #000; margin-top: 15px;">Ricomincia</button>
+            <button onclick="location.reload()" style="background: #1e293b; margin-top: 1.5rem;">Chiudi Sessione</button>
         </div>
 
-        <!-- REGISTRO PROF -->
+        <!-- REGISTRO DOCENTE -->
         <div id="view-prof" class="hidden">
-            <h2 style="text-transform: uppercase;">Registro Voti Docente</h2>
-            <div id="voti-list-prof" style="margin-bottom: 20px; max-height: 300px; overflow-y: auto;"></div>
-            <button onclick="generateClassReport()" class="btn-ai">Genera Analisi Classe AI ✨</button>
+            <h2 style="margin-top:0">Registro di Classe</h2>
+            <div id="voti-list-prof" style="margin-bottom: 1.5rem; max-height: 300px; overflow-y: auto; border: 1px solid #f1f5f9;"></div>
+            <button onclick="generateClassReport()" class="btn-secondary">Genera Report Statistico IA ✨</button>
             <div id="ai-report-area" class="hidden"></div>
-            <button onclick="location.reload()" style="background: #000; margin-top: 10px;">Esci</button>
+            <button onclick="location.reload()" style="background: #64748b; margin-top: 1rem;">Log-out</button>
         </div>
     </div>
 
     <script>
         const apiKey = ""; 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'liceo-rpg-v1';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'analisi-mat-pro-v1';
         const firebaseConfig = JSON.parse(__firebase_config);
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
 
+        // Autenticazione silente obbligatoria per Firestore (Regola 3)
+        let isAuthenticating = false;
         const initAuth = async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await auth.signInWithCustomToken(__initial_auth_token);
-            } else {
-                await auth.signInAnonymously();
-            }
+            if (isAuthenticating) return;
+            isAuthenticating = true;
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await auth.signInWithCustomToken(__initial_auth_token);
+                } else {
+                    await auth.signInAnonymously();
+                }
+            } catch (e) { console.error("Errore Auth:", e); }
+            isAuthenticating = false;
         };
-        initAuth().catch(console.error);
+        initAuth();
 
         const dataset = [
-            { q: "Qual è il limite per x → 0 di (eˣ - 1) / x?", a: ["0", "1", "∞", "Non esiste"], c: 1, topic: "Limiti Notevoli" },
+            { q: "Qual è il limite per x → 0 di (eˣ - 1) / x?", a: ["0", "1", "∞", "Non esiste"], c: 1, topic: "Limiti" },
             { q: "Una funzione f(x) è continua in x₀ se:", a: ["Esiste f(x₀)", "Il limite destro e sinistro coincidono con f(x₀)", "La derivata è positiva", "f(x₀) è positiva"], c: 1, topic: "Continuità" },
             { q: "Data f(x) = x², qual è il coefficiente angolare della tangente in x = 3?", a: ["3", "6", "9", "0"], c: 1, topic: "Derivate" },
-            { q: "Se f'(x) > 0 in un intervallo, la funzione è:", a: ["Costante", "Crescente", "Decrescente", "Concava"], c: 1, topic: "Studio di Funzione" },
-            { q: "Cosa indica un punto in cui f''(x) = 0 e cambia segno?", a: ["Massimo", "Minimo", "Flesso", "Asintoto"], c: 2, topic: "Studio di Funzione" },
+            { q: "Se f'(x) > 0 in un intervallo, la funzione è:", a: ["Costante", "Crescente", "Decrescente", "Concava"], c: 1, topic: "Derivate" },
+            { q: "Cosa indica un punto in cui f''(x) = 0 e cambia segno?", a: ["Massimo", "Minimo", "Flesso", "Asintoto"], c: 2, topic: "Studio Funzione" },
             { q: "Qual è la derivata di f(x) = ln(x)?", a: ["eˣ", "x", "1/x", "1"], c: 2, topic: "Derivate" },
             { q: "Il limite per x → ∞ di (3x² + 2) / (x² - 1) è:", a: ["0", "2", "3", "∞"], c: 2, topic: "Limiti" },
-            { q: "Quale tipo di discontinuità presenta f(x) = sin(x)/x in x = 0?", a: ["1° specie (salto)", "2° specie (infinito)", "3° specie (eliminabile)", "È continua"], c: 2, topic: "Continuità" },
+            { q: "Quale tipo di discontinuità presenta f(x) = sin(x)/x in x = 0?", a: ["1° specie", "2° specie", "3° specie (eliminabile)", "È continua"], c: 2, topic: "Continuità" },
             { q: "La derivata del prodotto [f(x)g(x)]' è:", a: ["f'g + fg'", "f'g'", "f' + g'", "fg' - f'g"], c: 0, topic: "Derivate" },
-            { q: "La funzione f(x) = |x| è derivabile in x = 0?", a: ["Sì", "No", "Solo se x > 0", "Sì, vale 0"], c: 1, topic: "Derivate" }
+            { q: "La funzione f(x) = |x| è derivabile in x = 0?", a: ["Sì", "No", "Solo se x > 0", "Sì, ha valore 0"], c: 1, topic: "Continuità" }
         ];
 
         let score = 0, currentIdx = 0, studentName = "", wrongAnswers = [];
@@ -138,30 +159,35 @@
                     });
                     if (res.ok) {
                         const data = await res.json();
-                        return data.candidates?.[0]?.content?.parts?.[0]?.text || "Risposta vuota.";
+                        return data.candidates?.[0]?.content?.parts?.[0]?.text;
                     }
-                } catch (e) { if (i === 4) return "Connessione IA fallita."; }
+                } catch (e) {}
                 await new Promise(r => setTimeout(r, delays[i]));
             }
-            return "IA non risponde.";
+            return "Impossibile generare il report IA al momento.";
         }
 
         function showView(id) {
-            document.querySelectorAll('.container > div').forEach(v => v.classList.add('hidden'));
-            document.getElementById('header').classList.remove('hidden');
+            document.querySelectorAll('.container > div').forEach(v => {
+                if(v.id !== 'header') v.classList.add('hidden');
+            });
             document.getElementById(id).classList.remove('hidden');
         }
 
-        function checkAuth() {
+        async function checkAuth() {
             if(document.getElementById('prof-pass').value === "ProfDoc2026") {
                 showView('view-prof');
                 loadLeaderboard('voti-list-prof');
-            } else { alert("Accesso negato!"); }
+            } else { alert("Password non valida."); }
         }
 
-        function startQuiz() {
+        async function startQuiz() {
             studentName = document.getElementById('std-name').value.trim();
-            if(!studentName) return alert("Inserisci un nome!");
+            if(!studentName) return alert("Inserire nome e cognome per procedere.");
+            
+            // Assicuriamoci che l'auth sia pronta
+            if (!auth.currentUser) await initAuth();
+            
             currentIdx = 0; score = 0; wrongAnswers = [];
             showView('view-quiz');
             renderQ();
@@ -169,7 +195,7 @@
 
         function renderQ() {
             const d = dataset[currentIdx];
-            document.getElementById('q-info').innerText = `QUESITO ${currentIdx + 1}/${dataset.length}`;
+            document.getElementById('q-info').innerText = `QUESITO ${currentIdx + 1} DI ${dataset.length}`;
             document.getElementById('q-text').innerText = d.q;
             const container = document.getElementById('options-container');
             container.innerHTML = "";
@@ -194,14 +220,15 @@
             
             if (auth.currentUser) {
                 try {
+                    // Percorso obbligatorio per Firestore (Regola 1)
                     await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('voti').add({
                         name: studentName,
                         grade: parseFloat(grade),
                         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                        wrongData: JSON.stringify(wrongAnswers)
+                        errors: JSON.stringify(wrongAnswers)
                     });
                     loadLeaderboard('student-leaderboard-list');
-                } catch(e) { console.error(e); }
+                } catch(e) { console.error("Salvataggio fallito:", e); }
             }
         }
 
@@ -211,33 +238,34 @@
                 const container = document.getElementById(targetId);
                 let list = [];
                 snap.forEach(doc => list.push(doc.data()));
-                
                 list.sort((a, b) => (b.grade || 0) - (a.grade || 0));
-                window.currentClassData = list; // Per report AI
+                window.currentClassData = list; 
 
                 container.innerHTML = list.map(d => `
                     <div class="score-row">
-                        <span>👤 <b>${d.name}</b></span>
+                        <span>${d.name}</span>
                         <span class="badge">${d.grade}/10</span>
                     </div>
-                `).join('') || "Nessun eroe ancora registrato.";
+                `).join('') || "<p style='font-size:0.8rem'>Nessun dato registrato.</p>";
             });
         }
 
         async function getAiFeedback() {
             const area = document.getElementById('ai-response-area');
             area.classList.remove('hidden');
-            area.innerHTML = `<div class="loading-spinner"></div> Consultazione alchemica...`;
-            const prompt = `Studente: ${studentName}. Voto: ${score}/${dataset.length}. Errori: ${JSON.stringify(wrongAnswers)}. Sii un saggio maestro RPG e incoraggia lo studente.`;
-            area.innerHTML = `✨ <b>Il Saggio:</b><br>${await callGemini(prompt, "Sei un precettore medievale di matematica.")}`;
+            area.innerHTML = `<span class="loading">Elaborazione feedback formativo in corso...</span>`;
+            const prompt = `Lo studente ${studentName} ha ottenuto un punteggio di ${score}/10. Errori commessi: ${JSON.stringify(wrongAnswers)}. Fornisci un feedback pedagogico e professionale su come migliorare.`;
+            const res = await callGemini(prompt, "Sei un docente universitario di Analisi Matematica. Fornisci feedback costruttivi e professionali.");
+            area.innerHTML = `<strong>Feedback del Docente (IA):</strong><br>${res}`;
         }
 
         async function generateClassReport() {
             const area = document.getElementById('ai-report-area');
             area.classList.remove('hidden');
-            area.innerHTML = `<div class="loading-spinner"></div> Studio statistico in corso...`;
-            const prompt = `Analizza questi dati della classe: ${JSON.stringify(window.currentClassData)}. Fornisci un report professionale su cosa ripassare.`;
-            area.innerHTML = `📊 <b>Analisi Docente:</b><br>${await callGemini(prompt, "Sei un esperto di analisi matematica.")}`;
+            area.innerHTML = `<span class="loading">Generazione analisi statistica della classe...</span>`;
+            const prompt = `Dati classe: ${JSON.stringify(window.currentClassData)}. Analizza l'andamento generale e suggerisci quali argomenti richiedono una lezione di recupero.`;
+            const res = await callGemini(prompt, "Sei un coordinatore didattico esperto in analisi statistica dei risultati accademici.");
+            area.innerHTML = `<strong>Rapporto di Rendimento Classe:</strong><br>${res}`;
         }
     </script>
 </body>
