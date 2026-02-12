@@ -13,7 +13,8 @@
         body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .box { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; position: relative; }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 14px; background: var(--p); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        button { width: 100%; padding: 14px; background: var(--p); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
         .hidden { display: none; }
         .opt { border: 1px solid #eee; margin: 8px 0; padding: 12px; border-radius: 8px; cursor: pointer; text-align: left; transition: 0.2s; }
         .opt:hover { background: #f8fafc; border-color: var(--s); transform: translateX(5px); }
@@ -21,6 +22,8 @@
         .online { background: #dcfce7; color: #166534; }
         .offline { background: #fee2e2; color: #991b1b; }
         #q-progresso { font-size: 11px; font-weight: 800; color: var(--s); text-transform: uppercase; margin-bottom: 10px; text-align: left; }
+        .correct { background: #dcfce7 !important; border-color: #22c55e !important; }
+        .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; }
     </style>
 </head>
 <body>
@@ -30,9 +33,9 @@
     
     <div id="v-login">
         <h2 style="margin-top:0; color:var(--p)">Analisi Matematica I</h2>
-        <p style="color:#64748b; font-size:14px; margin-bottom:20px;">Inserire Cognome e Nome per iniziare la sessione.</p>
+        <p style="color:#64748b; font-size:14px; margin-bottom:20px;">Inserire Cognome e Nome per iniziare.</p>
         <input id="nome" type="text" placeholder="Cognome e Nome">
-        <button type="button" onclick="avviaTest()" style="width:100%">AVVIA Verifica</button>
+        <button type="button" id="btn-start" onclick="avviaTest()" disabled>CONNESSIONE...</button>
         <p onclick="vaiA('v-prof-auth')" style="font-size:12px; color:#94a3b8; cursor:pointer; margin-top:20px; text-decoration:underline;">Accesso Docente</p>
     </div>
 
@@ -58,38 +61,37 @@
 </div>
 
 <script>
-    // --- CONFIGURAZIONE MANUALE ---
-    // Sostituisci il vecchio init con questo
-async function initFirebase() {
-    const statusEl = document.getElementById('debug-status');
-    try {
-        const firebaseConfig = {
-            apiKey: "AIzaSyDDHFGjW_oiCiP7MhdBRq9vqWHAvjTfDws",
-            authDomain: "compito-di-mate.firebaseapp.com",
-            projectId: "compito-di-mate",
-            storageBucket: "compito-di-mate.firebasestorage.app",
-            messagingSenderId: "306562904610",
-            appId: "1:306562904610:web:c80a54eea6157e7108507b",
-            measurementId: "G-MHV0KWER9G"
-        };
+    let db, isFirebaseReady = false;
+    const appId = 'analisi-final-v3'; // Il tuo ID cartella su Firebase
+    let indice = 0, punti = 0, utente = "";
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
+    async function initFirebase() {
+        const statusEl = document.getElementById('debug-status');
+        const btnStart = document.getElementById('btn-start');
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyDDHFGjW_oiCiP7MhdBRq9vqWHAvjTfDws",
+                authDomain: "compito-di-mate.firebaseapp.com",
+                projectId: "compito-di-mate",
+                storageBucket: "compito-di-mate.firebasestorage.app",
+                messagingSenderId: "306562904610",
+                appId: "1:306562904610:web:c80a54eea6157e7108507b"
+            };
+
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            await firebase.auth().signInAnonymously();
+
+            isFirebaseReady = true;
+            statusEl.innerText = "DB CONNESSO";
+            statusEl.className = "online";
+            btnStart.disabled = false;
+            btnStart.innerText = "AVVIA VERIFICA";
+        } catch (e) {
+            statusEl.innerText = "ERRORE DB";
+            console.error(e);
         }
-        
-        db = firebase.firestore();
-        // Importante: attendi il login anonimo
-        await firebase.auth().signInAnonymously();
-
-        isFirebaseReady = true;
-        statusEl.innerText = "DB CONNESSO";
-        statusEl.className = "online";
-    } catch (e) {
-        console.error("Errore:", e);
-        statusEl.innerText = "ERRORE CONNESSIONE";
-        statusEl.className = "offline";
     }
-}
 
     const domande = [
         { q: "Qual è il limite per x → 0 di (eˣ - 1) / x?", a: ["0", "1", "e", "∞"], c: 1 },
@@ -104,8 +106,6 @@ async function initFirebase() {
         { q: "La funzione f(x) = |x| nel punto x=0 è:", a: ["Derivabile", "Continua ma non derivabile", "Discontinua", "Un flesso"], c: 1 }
     ];
 
-    let indice = 0, punti = 0, utente = "";
-
     function vaiA(id) {
         document.querySelectorAll('.box > div:not(#debug-status)').forEach(div => div.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
@@ -113,7 +113,7 @@ async function initFirebase() {
 
     function avviaTest() {
         utente = document.getElementById('nome').value.trim();
-        if (utente.length < 3) return alert("Inserisci il nome completo.");
+        if (utente.length < 3) return alert("Inserisci Cognome e Nome.");
         indice = 0; punti = 0;
         vaiA('v-quiz');
         mostraDomanda();
@@ -125,14 +125,24 @@ async function initFirebase() {
         document.getElementById('q-testo').innerText = d.q;
         const container = document.getElementById('q-opzioni');
         container.innerHTML = "";
+        
         d.a.forEach((testo, i) => {
             const div = document.createElement('div');
             div.className = "opt";
             div.innerText = testo;
             div.onclick = () => {
-                if(i === d.c) punti++;
-                if(++indice < domande.length) mostraDomanda();
-                else fineTest();
+                if(container.style.pointerEvents === "none") return;
+                container.style.pointerEvents = "none"; // Blocca click multipli
+
+                const correct = (i === d.c);
+                div.classList.add(correct ? 'correct' : 'wrong');
+                if(correct) punti++;
+
+                setTimeout(() => {
+                    container.style.pointerEvents = "auto";
+                    if(++indice < domande.length) mostraDomanda();
+                    else fineTest();
+                }, 500);
             };
             container.appendChild(div);
         });
@@ -143,42 +153,37 @@ async function initFirebase() {
         document.getElementById('voto-finale').innerText = voto + "/10";
         vaiA('v-res');
         
-        // Regola 1: Percorso rigoroso per dati pubblici
         if (isFirebaseReady && db) {
-            const path = `artifacts/${analisi-final-v3}/public/data/voti`;
+            const path = `artifacts/${appId}/public/data/voti`;
             db.collection(path).add({
                 nome: utente,
                 voto: parseFloat(voto),
                 data: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => caricaVoti())
-            .catch(err => console.error("Errore salvataggio:", err));
-        } else {
-            document.getElementById('lista-voti').innerHTML = "<p style='color:orange; font-size:12px'>Voto salvato solo localmente (DB disconnesso).</p>";
+            }).then(() => {
+                // Lo studente non vede la lista, solo il prof
+                document.getElementById('lista-voti').innerHTML = "<p style='color:green; font-size:12px'>Voto registrato con successo.</p>";
+            }).catch(err => {
+                console.error(err);
+                document.getElementById('lista-voti').innerHTML = "<p style='color:red'>Errore nel salvataggio.</p>";
+            });
         }
     }
 
     function caricaVoti() {
         if (!db) return;
-        // Regola 1 e 2: Percorso corretto e nessuna query complessa (orderBy rimosso per evitare necessità di indici)
         const path = `artifacts/${appId}/public/data/voti`;
         db.collection(path).get().then(snap => {
-            let html = "<strong style='font-size:11px; color:#64748b; text-transform:uppercase;'>Graduatoria Studenti:</strong><br><div style='margin-top:10px'>";
+            let html = "<strong style='font-size:11px; color:#64748b; text-transform:uppercase;'>Registro Classe:</strong><br><div style='margin-top:10px'>";
             let voti = [];
             snap.forEach(doc => voti.push(doc.data()));
-            
-            // Ordinamento in JavaScript per evitare errori di permessi/indici
             voti.sort((a, b) => (b.voto || 0) - (a.voto || 0));
             
-            voti.slice(0, 10).forEach(d => {
+            voti.forEach(d => {
                 html += `<div style="display:flex; justify-content:space-between; margin-bottom:5px; border-bottom:1px solid #f1f5f9; font-size:14px">
                             <span>${d.nome}</span><strong>${d.voto}</strong>
                          </div>`;
             });
-            html += "</div>";
-            document.getElementById('lista-voti').innerHTML = html;
-        }).catch(err => {
-            console.error("Errore caricamento voti:", err);
-            document.getElementById('lista-voti').innerHTML = "Errore nel caricamento dei dati.";
+            document.getElementById('lista-voti').innerHTML = html + "</div>";
         });
     }
 
@@ -193,6 +198,3 @@ async function initFirebase() {
 </script>
 </body>
 </html>
-
-
-
